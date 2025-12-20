@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
     }
 
     const otp = generateOTP();
-    const otpKey = email.toLowerCase();
 
     setOTP(email, otp);
 

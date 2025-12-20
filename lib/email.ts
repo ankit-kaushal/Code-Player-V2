@@ -8,6 +8,12 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Log email user for testing
+console.log('Email configuration:', {
+  emailUser: process.env.EMAIL_USER || 'NOT SET',
+  hasEmailPassword: !!process.env.EMAIL_PASSWORD
+});
+
 export const sendOTP = async (email: string, otp: string): Promise<boolean> => {
   try {
     const mailOptions = {
