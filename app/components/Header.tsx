@@ -138,22 +138,26 @@ export default function Header({
                       </span>
                     </div>
                     {userCredits === 0 && (
-                      <a
-                        href="/account"
-                        onClick={() => setShowUserMenu(false)}
-                        className="text-xs text-blue-600 hover:text-blue-800 underline mt-1 block"
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          router.push("/account");
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 underline mt-1 block text-left w-full"
                       >
                         Purchase tokens
-                      </a>
+                      </button>
                     )}
                   </div>
-                  <a
-                    href="/account"
-                    onClick={() => setShowUserMenu(false)}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      router.push("/account");
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Account
-                  </a>
+                  </button>
                   <button
                     onClick={() => {
                       setShowUserMenu(false);
@@ -179,4 +183,3 @@ export default function Header({
     </header>
   );
 }
-

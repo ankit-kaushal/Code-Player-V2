@@ -321,6 +321,7 @@ ${js || "// No JavaScript"}
         onDownloadClick={handleDownload}
         shareDisabled={!canEdit}
         shareLoading={saving}
+        onLoginClick={() => setIsLoginModalOpen(true)}
       />
 
       {message && (
