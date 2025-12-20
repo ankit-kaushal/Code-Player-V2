@@ -316,13 +316,13 @@ ${js || "// No JavaScript"}
   };
 
   const handleRunCode = () => {
-    setConsoleLogs([]);
+    // Don't clear logs here - let runCode() handle it to avoid timing issues
     // Always try to use the ref first
     if (previewRef.current) {
       try {
         previewRef.current.runCode();
       } catch (error) {
-        console.error('Error running code via ref:', error);
+        console.error("Error running code via ref:", error);
         // Fallback: trigger via shouldRunCode state
         setShouldRunCode(true);
         setTimeout(() => setShouldRunCode(false), 100);
@@ -336,6 +336,10 @@ ${js || "// No JavaScript"}
 
   const handleClearConsole = () => {
     setConsoleLogs([]);
+    // Also clear logs in Preview component
+    if (previewRef.current) {
+      previewRef.current.clearLogs();
+    }
   };
 
   // Calculate widths based on collapsed state and user-defined widths

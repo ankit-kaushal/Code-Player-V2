@@ -303,13 +303,13 @@ ${js || "// No JavaScript"}
   };
 
   const handleRunCode = () => {
-    setConsoleLogs([]);
+    // Don't clear logs here - let runCode() handle it to avoid timing issues
     // Always try to use the ref first
     if (previewRef.current) {
       try {
         previewRef.current.runCode();
       } catch (error) {
-        console.error('Error running code via ref:', error);
+        console.error("Error running code via ref:", error);
         // Fallback: trigger via shouldRunCode state
         setShouldRunCode(true);
         setTimeout(() => setShouldRunCode(false), 100);
@@ -323,6 +323,10 @@ ${js || "// No JavaScript"}
 
   const handleClearConsole = () => {
     setConsoleLogs([]);
+    // Also clear logs in Preview component
+    if (previewRef.current) {
+      previewRef.current.clearLogs();
+    }
   };
 
   // Reset widths to equal when editors are collapsed/expanded
@@ -615,7 +619,11 @@ ${js || "// No JavaScript"}
               </button>
             </div>
             <div className="flex-1 min-h-0 relative h-full">
-              <div className={`absolute inset-0 ${activeTab === "preview" ? "block" : "hidden"}`}>
+              <div
+                className={`absolute inset-0 ${
+                  activeTab === "preview" ? "block" : "hidden"
+                }`}
+              >
                 <Preview
                   ref={previewRef}
                   html={html}
@@ -625,8 +633,16 @@ ${js || "// No JavaScript"}
                   shouldRun={shouldRunCode}
                 />
               </div>
-              <div className={`absolute inset-0 ${activeTab === "console" ? "block" : "hidden"}`}>
-                <Console logs={consoleLogs} onRun={handleRunCode} onClear={handleClearConsole} />
+              <div
+                className={`absolute inset-0 ${
+                  activeTab === "console" ? "block" : "hidden"
+                }`}
+              >
+                <Console
+                  logs={consoleLogs}
+                  onRun={handleRunCode}
+                  onClear={handleClearConsole}
+                />
               </div>
             </div>
           </div>
