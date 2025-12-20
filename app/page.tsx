@@ -372,6 +372,12 @@ ${js || "// No JavaScript"}
                 {saving ? "Saving & Sharing..." : "Share"}
               </button>
               <button
+                onClick={() => router.push("/account")}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium"
+              >
+                Account
+              </button>
+              <button
                 onClick={handleDownload}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
               >

@@ -18,16 +18,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
     }
 
-    const emailSentCollection = await getCollection(COLLECTIONS.EMAIL_SENT);
+    const usersCollection = await getCollection(COLLECTIONS.USERS);
+    const userId = new ObjectId(user.userId);
 
-    // Check if user has already sent an email
-    const record = await emailSentCollection.findOne({
-      userId: new ObjectId(user.userId)
-    });
+    // Check user's email credits
+    const userDoc = await usersCollection.findOne({ _id: userId });
+    const credits = userDoc?.emailCredits || 0;
 
-    if (record) {
+    if (credits < 1) {
       return NextResponse.json(
-        { error: 'You have already sent a test email. Only one test email is allowed per account.' },
+        { error: 'Insufficient email credits. Please purchase credits to send emails.' },
         { status: 403 }
       );
     }
@@ -35,13 +35,24 @@ export async function POST(req: NextRequest) {
     try {
       await sendTestEmail(email, html || '', css || '', js || '');
       
-      // Record that email was sent
-      await emailSentCollection.insertOne({
-        userId: new ObjectId(user.userId),
-        sentAt: new Date()
-      });
+      // Deduct credit and record email sent
+      await usersCollection.updateOne(
+        { _id: userId },
+        {
+          $inc: { emailCredits: -1 },
+          $push: {
+            emailsSent: {
+              to: email,
+              sentAt: new Date(),
+            },
+          },
+        }
+      );
 
-      return NextResponse.json({ message: 'Test email sent successfully' });
+      return NextResponse.json({ 
+        message: 'Test email sent successfully',
+        remainingCredits: credits - 1,
+      });
     } catch (emailError) {
       console.error('Error sending test email:', emailError);
       return NextResponse.json({ error: 'Failed to send test email' }, { status: 500 });

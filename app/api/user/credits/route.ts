@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCollection, COLLECTIONS } from '@/lib/database';
 import { verifyToken } from '@/lib/auth';
+import { getCollection, COLLECTIONS } from '@/lib/database';
 import { ObjectId } from 'mongodb';
 
 export async function GET(req: NextRequest) {
@@ -14,17 +14,19 @@ export async function GET(req: NextRequest) {
     const usersCollection = await getCollection(COLLECTIONS.USERS);
     const userDoc = await usersCollection.findOne(
       { _id: new ObjectId(user.userId) },
-      { projection: { emailCredits: 1 } }
+      { projection: { emailCredits: 1, paymentHistory: 1 } }
     );
 
-    const credits = userDoc?.emailCredits || 0;
-
-    return NextResponse.json({ 
-      canSend: credits > 0,
-      credits,
+    return NextResponse.json({
+      credits: userDoc?.emailCredits || 0,
+      paymentHistory: userDoc?.paymentHistory || [],
     });
-  } catch (error) {
-    console.error('Error in can-send check:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error fetching credits:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch credits' },
+      { status: 500 }
+    );
   }
 }
+

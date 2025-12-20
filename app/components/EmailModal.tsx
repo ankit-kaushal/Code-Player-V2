@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface EmailModalProps {
   isOpen: boolean;
@@ -11,11 +12,13 @@ interface EmailModalProps {
 }
 
 const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, html, css, js }) => {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [canSend, setCanSend] = useState(true);
+  const [credits, setCredits] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -35,8 +38,9 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, html, css, js 
       if (response.ok) {
         const data = await response.json();
         setCanSend(data.canSend);
+        setCredits(data.credits || 0);
         if (!data.canSend) {
-          setError('You have already sent a test email. Only one test email is allowed per account.');
+          setError(`Insufficient email credits. You have ${data.credits || 0} credits. Please purchase credits to send emails.`);
         }
       }
     } catch (err) {
@@ -67,7 +71,8 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, html, css, js 
         throw new Error(data.error || 'Failed to send email');
       }
 
-      setMessage('Test email sent successfully!');
+      setMessage(`Test email sent successfully! Remaining credits: ${data.remainingCredits || credits - 1}`);
+      setCredits(data.remainingCredits || credits - 1);
       setEmail('');
       setTimeout(() => {
         onClose();
@@ -94,6 +99,7 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, html, css, js 
       <div className="bg-white p-8 rounded-lg max-w-md w-90 relative shadow-xl" onClick={(e) => e.stopPropagation()}>
         <button className="absolute top-2 right-4 text-2xl text-gray-600 hover:text-black" onClick={handleClose}>×</button>
         <h2 className="text-2xl font-bold mb-4 text-gray-800">Send Test Email</h2>
+        <p className="text-sm text-gray-600 mb-2">Email Credits: <span className="font-bold text-blue-600">{credits}</span></p>
         
         <form onSubmit={handleSend} className="flex flex-col gap-4">
           <p className="text-gray-600">Enter the email address to send your code to:</p>
@@ -106,7 +112,22 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, html, css, js 
             disabled={loading || !canSend}
             className="p-3 border-2 border-gray-300 rounded focus:outline-none focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
-          {error && <div className="text-red-600 p-3 bg-red-50 rounded text-sm">{error}</div>}
+          {error && (
+            <div className="text-red-600 p-3 bg-red-50 rounded text-sm">
+              {error}
+              {!canSend && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    router.push('/account');
+                  }}
+                  className="mt-2 block text-blue-600 hover:underline"
+                >
+                  Purchase Credits →
+                </button>
+              )}
+            </div>
+          )}
           {message && <div className="text-green-600 p-3 bg-green-50 rounded text-sm">{message}</div>}
           <button
             type="submit"
