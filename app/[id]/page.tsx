@@ -120,32 +120,49 @@ export default function SharedCodePage() {
       const deltaPercentage = (deltaX / containerWidth) * 100;
 
       if (isResizing === "html") {
-        // HTML resize handle (right side) - affects HTML and CSS only
-        if (!htmlCollapsed && !cssCollapsed) {
+        // HTML resize handle (right side) - affects HTML and next visible editor
+        if (!htmlCollapsed) {
           const newHtmlWidth = Math.max(
             10,
             Math.min(60, resizeStart.htmlWidth + deltaPercentage)
           );
-          const newCssWidth = Math.max(
-            10,
-            resizeStart.cssWidth - deltaPercentage
-          );
           setHtmlWidth(newHtmlWidth);
-          setCssWidth(newCssWidth);
+          
+          // Adjust the next visible editor (CSS if visible, otherwise JS, otherwise preview takes the space)
+          if (!cssCollapsed) {
+            const newCssWidth = Math.max(
+              10,
+              resizeStart.cssWidth - deltaPercentage
+            );
+            setCssWidth(newCssWidth);
+          } else if (!jsCollapsed) {
+            // If CSS is collapsed, adjust JS
+            const newJsWidth = Math.max(
+              10,
+              resizeStart.jsWidth - deltaPercentage
+            );
+            setJsWidth(newJsWidth);
+          }
+          // If both CSS and JS are collapsed, preview will automatically take the space
         }
       } else if (isResizing === "css") {
-        // CSS resize handle (right side) - affects CSS and JS only
-        if (!cssCollapsed && !jsCollapsed) {
+        // CSS resize handle (right side) - affects CSS and next visible editor
+        if (!cssCollapsed) {
           const newCssWidth = Math.max(
             10,
             Math.min(60, resizeStart.cssWidth + deltaPercentage)
           );
-          const newJsWidth = Math.max(
-            10,
-            resizeStart.jsWidth - deltaPercentage
-          );
           setCssWidth(newCssWidth);
-          setJsWidth(newJsWidth);
+          
+          // Adjust the next visible editor (JS if visible, otherwise preview takes the space)
+          if (!jsCollapsed) {
+            const newJsWidth = Math.max(
+              10,
+              resizeStart.jsWidth - deltaPercentage
+            );
+            setJsWidth(newJsWidth);
+          }
+          // If JS is collapsed, preview will automatically take the space
         }
       } else if (isResizing === "js") {
         // JS resize handle (between JS and Preview) - affects JS and Preview
