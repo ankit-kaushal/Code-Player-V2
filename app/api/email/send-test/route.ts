@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
               to: email,
               sentAt: new Date(),
             },
-          },
+          } as any,
         }
       );
 

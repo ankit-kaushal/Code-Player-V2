@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCollection, COLLECTIONS } from '@/lib/database';
 import { generateToken } from '@/lib/auth';
-import { getOTP, deleteOTP } from './request-otp/route';
+import { getOTP, deleteOTP } from '@/lib/otp-store';
 
 export async function POST(req: NextRequest) {
   try {
@@ -53,14 +53,4 @@ export async function POST(req: NextRequest) {
     console.error('Error in verify-otp:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
-
-// Store OTP in memory (called from request-otp route)
-export function storeOTP(email: string, otp: string) {
-  const otpKey = email.toLowerCase();
-  otpStore.set(otpKey, {
-    otp,
-    expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
-    email
-  });
 }

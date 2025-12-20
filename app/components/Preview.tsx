@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
 interface PreviewProps {
   html: string;
@@ -11,34 +11,35 @@ interface PreviewProps {
 
 const Preview: React.FC<PreviewProps> = ({ html, css, js, onConsoleLog }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const logsRef = useRef<any[]>([]);
 
   useEffect(() => {
     if (iframeRef.current) {
       const iframe = iframeRef.current;
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
-      
+
       if (!doc) return;
 
       // Set up message listener for console logs from iframe
       const handleMessage = (event: MessageEvent) => {
-        if (event.data.type === 'console') {
-          logs.push({
+        if (event.data.type === "console") {
+          logsRef.current.push({
             type: event.data.logType,
             message: event.data.message,
-            timestamp: new Date().toLocaleTimeString()
+            timestamp: new Date().toLocaleTimeString(),
           });
-          onConsoleLog?.(logs);
+          onConsoleLog?.(logsRef.current);
         }
       };
 
-      window.addEventListener('message', handleMessage);
+      window.addEventListener("message", handleMessage);
 
       doc.open();
       doc.write(`
         <!DOCTYPE html>
         <html>
           <head>
-            <style>${css || ''}</style>
+            <style>${css || ""}</style>
             <script>
               (function() {
                 const originalLog = console.log;
@@ -86,15 +87,15 @@ const Preview: React.FC<PreviewProps> = ({ html, css, js, onConsoleLog }) => {
             </script>
           </head>
           <body>
-            ${html || ''}
-            <script>${js || ''}</script>
+            ${html || ""}
+            <script>${js || ""}</script>
           </body>
         </html>
       `);
       doc.close();
 
       return () => {
-        window.removeEventListener('message', handleMessage);
+        window.removeEventListener("message", handleMessage);
       };
     }
   }, [html, css, js, onConsoleLog]);
@@ -115,4 +116,3 @@ const Preview: React.FC<PreviewProps> = ({ html, css, js, onConsoleLog }) => {
 };
 
 export default Preview;
-

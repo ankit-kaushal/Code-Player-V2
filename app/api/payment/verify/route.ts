@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
             amount: packageData.price,
             date: new Date(),
           },
-        },
+        } as any,
       }
     );
 

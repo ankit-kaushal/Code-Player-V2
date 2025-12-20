@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import CodeEditor from "../components/CodeEditor";
 import Preview from "../components/Preview";
@@ -17,6 +17,7 @@ interface ConsoleLog {
 
 export default function SharedCodePage() {
   const params = useParams();
+  const router = useRouter();
   const shareId = params.id as string;
   const { user, login, logout } = useAuth();
   const [html, setHtml] = useState("");
@@ -228,7 +229,6 @@ export default function SharedCodePage() {
       }
 
       const newShareId = data.shareId;
-      setShareId(newShareId);
 
       // Replace URL with /[id] format
       const newUrl = `/${newShareId}`;

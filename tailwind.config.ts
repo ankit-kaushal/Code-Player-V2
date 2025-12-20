@@ -1,4 +1,4 @@
-import type { Config } from 'next/dist/server/config-shared';
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
