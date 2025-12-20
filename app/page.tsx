@@ -9,6 +9,7 @@ import Preview, { PreviewHandle } from "./components/Preview";
 import Console from "./components/Console";
 import LoginModal from "./components/LoginModal";
 import EmailModal from "./components/EmailModal";
+import Header from "./components/Header";
 
 interface ConsoleLog {
   type: string;
@@ -311,69 +312,16 @@ ${js || "// No JavaScript"}
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-gray-100">
-      <header className="bg-gray-800 text-white p-4 flex justify-between items-center shadow-md z-10">
-        <h1 className="text-2xl font-bold">Code Player</h1>
-        <div className="flex gap-2 items-center flex-wrap">
-          {user ? (
-            <>
-              <span className="text-gray-300 text-sm mr-2">{user.email}</span>
-              <button
-                onClick={handleEmailClick}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm font-medium"
-              >
-                📧 Creating this for email
-              </button>
-              <button
-                onClick={handleShare}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-sm font-medium"
-                disabled={saving || !canEdit}
-              >
-                {saving ? "Saving & Sharing..." : "Share"}
-              </button>
-              <button
-                onClick={() => router.push("/account")}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium"
-              >
-                Account
-              </button>
-              <button
-                onClick={handleDownload}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-              >
-                Download
-              </button>
-              <button
-                onClick={logout}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm font-medium"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={handleShare}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-sm font-medium"
-                disabled={saving || !canEdit}
-              >
-                {saving ? "Saving & Sharing..." : "Share"}
-              </button>
-              <button
-                onClick={handleDownload}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-              >
-                Download
-              </button>
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-              >
-                Login
-              </button>
-            </>
-          )}
-        </div>
-      </header>
+      <Header
+        showEmailButton={true}
+        showShareButton={true}
+        showDownloadButton={true}
+        onEmailClick={handleEmailClick}
+        onShareClick={handleShare}
+        onDownloadClick={handleDownload}
+        shareDisabled={!canEdit}
+        shareLoading={saving}
+      />
 
       {message && (
         <div className="bg-green-500 text-white px-4 py-2 text-center text-sm">
@@ -381,9 +329,9 @@ ${js || "// No JavaScript"}
         </div>
       )}
 
-      {shareId && !canEdit && (
+      {!canEdit && (
         <div className="bg-orange-500 text-white px-4 py-2 text-center text-sm">
-          You are viewing a shared code. Login to edit.
+          You are viewing a shared code. Login as owner to edit.
         </div>
       )}
 
@@ -438,10 +386,16 @@ ${js || "// No JavaScript"}
               onResizeStop={(e, direction, ref, d) => {
                 if (containerRef.current) {
                   const containerWidth = containerRef.current.offsetWidth;
-                  const newWidthPercentage = ((calcHtmlWidth * containerWidth / 100) + d.width) / containerWidth * 100;
-                  const newHtmlWidth = Math.max(10, Math.min(60, newWidthPercentage));
+                  const newWidthPercentage =
+                    (((calcHtmlWidth * containerWidth) / 100 + d.width) /
+                      containerWidth) *
+                    100;
+                  const newHtmlWidth = Math.max(
+                    10,
+                    Math.min(60, newWidthPercentage)
+                  );
                   setHtmlWidth(newHtmlWidth);
-                  
+
                   // Adjust next visible editor
                   if (!cssCollapsed) {
                     const delta = newHtmlWidth - calcHtmlWidth;
@@ -479,10 +433,16 @@ ${js || "// No JavaScript"}
               onResizeStop={(e, direction, ref, d) => {
                 if (containerRef.current) {
                   const containerWidth = containerRef.current.offsetWidth;
-                  const newWidthPercentage = ((calcCssWidth * containerWidth / 100) + d.width) / containerWidth * 100;
-                  const newCssWidth = Math.max(10, Math.min(60, newWidthPercentage));
+                  const newWidthPercentage =
+                    (((calcCssWidth * containerWidth) / 100 + d.width) /
+                      containerWidth) *
+                    100;
+                  const newCssWidth = Math.max(
+                    10,
+                    Math.min(60, newWidthPercentage)
+                  );
                   setCssWidth(newCssWidth);
-                  
+
                   // Adjust next visible editor
                   if (!jsCollapsed) {
                     const delta = newCssWidth - calcCssWidth;
@@ -512,13 +472,26 @@ ${js || "// No JavaScript"}
               minWidth="10%"
               maxWidth={`${100 - (calcHtmlWidth + calcCssWidth) - 10}%`}
               enable={{ right: true, left: false, top: false, bottom: false }}
-              handleStyles={{ right: { cursor: "col-resize", width: "4px", right: "-2px" } }}
+              handleStyles={{
+                right: { cursor: "col-resize", width: "4px", right: "-2px" },
+              }}
               handleClasses={{ right: "resize-handle" }}
               onResizeStop={(e, direction, ref, d) => {
                 if (containerRef.current) {
                   const containerWidth = containerRef.current.offsetWidth;
-                  const newWidthPercentage = ((calcJsWidth * containerWidth / 100) + d.width) / containerWidth * 100;
-                  setJsWidth(Math.max(10, Math.min(100 - (calcHtmlWidth + calcCssWidth) - 10, newWidthPercentage)));
+                  const newWidthPercentage =
+                    (((calcJsWidth * containerWidth) / 100 + d.width) /
+                      containerWidth) *
+                    100;
+                  setJsWidth(
+                    Math.max(
+                      10,
+                      Math.min(
+                        100 - (calcHtmlWidth + calcCssWidth) - 10,
+                        newWidthPercentage
+                      )
+                    )
+                  );
                 }
               }}
               className="min-h-0"

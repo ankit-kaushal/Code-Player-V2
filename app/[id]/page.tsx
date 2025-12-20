@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { Resizable } from "re-resizable";
 import { useAuth } from "../context/AuthContext";
 import CodeEditor from "../components/CodeEditor";
 import Preview, { PreviewHandle } from "../components/Preview";
 import Console from "../components/Console";
 import LoginModal from "../components/LoginModal";
 import EmailModal from "../components/EmailModal";
+import Header from "../components/Header";
 
 interface ConsoleLog {
   type: string;
@@ -43,13 +45,6 @@ export default function SharedCodePage() {
   const [htmlWidth, setHtmlWidth] = useState(25);
   const [cssWidth, setCssWidth] = useState(25);
   const [jsWidth, setJsWidth] = useState(25);
-  const [isResizing, setIsResizing] = useState<string | null>(null);
-  const [resizeStart, setResizeStart] = useState<{
-    x: number;
-    htmlWidth: number;
-    cssWidth: number;
-    jsWidth: number;
-  } | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const checkCanEdit = useCallback(async () => {
@@ -108,88 +103,7 @@ export default function SharedCodePage() {
     if (!jsCollapsed && jsWidth !== equalWidth) setJsWidth(equalWidth);
   }, [htmlCollapsed, cssCollapsed, jsCollapsed]); // Only depend on collapsed states
 
-  // Handle resizing - each handle only affects adjacent editors
-  useEffect(() => {
-    if (!isResizing || !containerRef.current || !resizeStart) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-
-      const containerWidth = containerRef.current.offsetWidth;
-      const deltaX = e.clientX - resizeStart.x;
-      const deltaPercentage = (deltaX / containerWidth) * 100;
-
-      if (isResizing === "html") {
-        // HTML resize handle (right side) - affects HTML and next visible editor
-        if (!htmlCollapsed) {
-          const newHtmlWidth = Math.max(
-            10,
-            Math.min(60, resizeStart.htmlWidth + deltaPercentage)
-          );
-          setHtmlWidth(newHtmlWidth);
-          
-          // Adjust the next visible editor (CSS if visible, otherwise JS, otherwise preview takes the space)
-          if (!cssCollapsed) {
-            const newCssWidth = Math.max(
-              10,
-              resizeStart.cssWidth - deltaPercentage
-            );
-            setCssWidth(newCssWidth);
-          } else if (!jsCollapsed) {
-            // If CSS is collapsed, adjust JS
-            const newJsWidth = Math.max(
-              10,
-              resizeStart.jsWidth - deltaPercentage
-            );
-            setJsWidth(newJsWidth);
-          }
-          // If both CSS and JS are collapsed, preview will automatically take the space
-        }
-      } else if (isResizing === "css") {
-        // CSS resize handle (right side) - affects CSS and next visible editor
-        if (!cssCollapsed) {
-          const newCssWidth = Math.max(
-            10,
-            Math.min(60, resizeStart.cssWidth + deltaPercentage)
-          );
-          setCssWidth(newCssWidth);
-          
-          // Adjust the next visible editor (JS if visible, otherwise preview takes the space)
-          if (!jsCollapsed) {
-            const newJsWidth = Math.max(
-              10,
-              resizeStart.jsWidth - deltaPercentage
-            );
-            setJsWidth(newJsWidth);
-          }
-          // If JS is collapsed, preview will automatically take the space
-        }
-      } else if (isResizing === "js") {
-        // JS resize handle (between JS and Preview) - affects JS and Preview
-        // Moving right increases JS, moving left decreases JS (increases preview)
-        if (!jsCollapsed) {
-          const newJsWidth = Math.max(
-            10,
-            Math.min(60, resizeStart.jsWidth + deltaPercentage)
-          );
-          setJsWidth(newJsWidth);
-        }
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(null);
-      setResizeStart(null);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isResizing, resizeStart, htmlCollapsed, cssCollapsed, jsCollapsed]);
+  // Resizing is now handled by re-resizable library
 
   const loadSharedCode = async (id: string) => {
     try {
@@ -402,63 +316,17 @@ ${js || "// No JavaScript"}
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-gray-100">
-      <header className="bg-gray-800 text-white p-4 flex justify-between items-center shadow-md z-10">
-        <h1 className="text-2xl font-bold">Code Player</h1>
-        <div className="flex gap-2 items-center flex-wrap">
-          {user ? (
-            <>
-              <span className="text-gray-300 text-sm mr-2">{user.email}</span>
-              <button
-                onClick={handleEmailClick}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm font-medium"
-              >
-                📧 Creating this for email
-              </button>
-              <button
-                onClick={handleShare}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-sm font-medium"
-                disabled={saving || !canEdit}
-              >
-                {saving ? "Saving & Sharing..." : "Share"}
-              </button>
-              <button
-                onClick={handleDownload}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-              >
-                Download
-              </button>
-              <button
-                onClick={logout}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm font-medium"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={handleShare}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-sm font-medium"
-                disabled={saving || !canEdit}
-              >
-                {saving ? "Saving & Sharing..." : "Share"}
-              </button>
-              <button
-                onClick={handleDownload}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-              >
-                Download
-              </button>
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-              >
-                Login
-              </button>
-            </>
-          )}
-        </div>
-      </header>
+      <Header
+        showEmailButton={true}
+        showShareButton={true}
+        showDownloadButton={true}
+        onEmailClick={handleEmailClick}
+        onShareClick={handleShare}
+        onDownloadClick={handleDownload}
+        onLoginClick={() => setIsLoginModalOpen(true)}
+        shareDisabled={!canEdit}
+        shareLoading={saving}
+      />
 
       {message && (
         <div className="bg-green-500 text-white px-4 py-2 text-center text-sm">
@@ -466,9 +334,9 @@ ${js || "// No JavaScript"}
         </div>
       )}
 
-      {shareId && !canEdit && (
+      {!canEdit && (
         <div className="bg-orange-500 text-white px-4 py-2 text-center text-sm">
-          You are viewing a shared code. Login to edit.
+          You are viewing a shared code. Login as owner to edit.
         </div>
       )}
 
@@ -513,8 +381,39 @@ ${js || "// No JavaScript"}
         >
           {/* HTML Editor */}
           {!htmlCollapsed && (
-            <>
-              <div className="min-h-0" style={{ width: `${calcHtmlWidth}%` }}>
+            <Resizable
+              size={{ width: `${calcHtmlWidth}%`, height: "100%" }}
+              minWidth="10%"
+              maxWidth="60%"
+              enable={{ right: true, left: false, top: false, bottom: false }}
+              handleStyles={{ right: { cursor: "col-resize" } }}
+              handleClasses={{ right: "resize-handle" }}
+              onResizeStop={(e, direction, ref, d) => {
+                if (containerRef.current) {
+                  const containerWidth = containerRef.current.offsetWidth;
+                  const newWidthPercentage =
+                    (((calcHtmlWidth * containerWidth) / 100 + d.width) /
+                      containerWidth) *
+                    100;
+                  const newHtmlWidth = Math.max(
+                    10,
+                    Math.min(60, newWidthPercentage)
+                  );
+                  setHtmlWidth(newHtmlWidth);
+
+                  // Adjust next visible editor
+                  if (!cssCollapsed) {
+                    const delta = newHtmlWidth - calcHtmlWidth;
+                    setCssWidth(Math.max(10, calcCssWidth - delta));
+                  } else if (!jsCollapsed) {
+                    const delta = newHtmlWidth - calcHtmlWidth;
+                    setJsWidth(Math.max(10, calcJsWidth - delta));
+                  }
+                }
+              }}
+              className="min-h-0"
+            >
+              <div className="h-full">
                 <CodeEditor
                   language="html"
                   value={html}
@@ -524,29 +423,41 @@ ${js || "// No JavaScript"}
                   onToggleCollapse={() => setHtmlCollapsed(true)}
                 />
               </div>
-              <div
-                className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  if (containerRef.current) {
-                    setResizeStart({
-                      x: e.clientX,
-                      htmlWidth: calcHtmlWidth,
-                      cssWidth: calcCssWidth,
-                      jsWidth: calcJsWidth,
-                    });
-                    setIsResizing("html");
-                  }
-                }}
-                style={{ minWidth: "4px" }}
-              />
-            </>
+            </Resizable>
           )}
 
           {/* CSS Editor */}
           {!cssCollapsed && (
-            <>
-              <div className="min-h-0" style={{ width: `${calcCssWidth}%` }}>
+            <Resizable
+              size={{ width: `${calcCssWidth}%`, height: "100%" }}
+              minWidth="10%"
+              maxWidth="60%"
+              enable={{ right: true, left: false, top: false, bottom: false }}
+              handleStyles={{ right: { cursor: "col-resize" } }}
+              handleClasses={{ right: "resize-handle" }}
+              onResizeStop={(e, direction, ref, d) => {
+                if (containerRef.current) {
+                  const containerWidth = containerRef.current.offsetWidth;
+                  const newWidthPercentage =
+                    (((calcCssWidth * containerWidth) / 100 + d.width) /
+                      containerWidth) *
+                    100;
+                  const newCssWidth = Math.max(
+                    10,
+                    Math.min(60, newWidthPercentage)
+                  );
+                  setCssWidth(newCssWidth);
+
+                  // Adjust next visible editor
+                  if (!jsCollapsed) {
+                    const delta = newCssWidth - calcCssWidth;
+                    setJsWidth(Math.max(10, calcJsWidth - delta));
+                  }
+                }
+              }}
+              className="min-h-0"
+            >
+              <div className="h-full">
                 <CodeEditor
                   language="css"
                   value={css}
@@ -556,29 +467,41 @@ ${js || "// No JavaScript"}
                   onToggleCollapse={() => setCssCollapsed(true)}
                 />
               </div>
-              <div
-                className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  if (containerRef.current) {
-                    setResizeStart({
-                      x: e.clientX,
-                      htmlWidth: calcHtmlWidth,
-                      cssWidth: calcCssWidth,
-                      jsWidth: calcJsWidth,
-                    });
-                    setIsResizing("css");
-                  }
-                }}
-                style={{ minWidth: "4px" }}
-              />
-            </>
+            </Resizable>
           )}
 
           {/* JS Editor */}
           {!jsCollapsed && (
-            <>
-              <div className="min-h-0" style={{ width: `${calcJsWidth}%` }}>
+            <Resizable
+              size={{ width: `${calcJsWidth}%`, height: "100%" }}
+              minWidth="10%"
+              maxWidth={`${100 - (calcHtmlWidth + calcCssWidth) - 10}%`}
+              enable={{ right: true, left: false, top: false, bottom: false }}
+              handleStyles={{
+                right: { cursor: "col-resize", width: "4px", right: "-2px" },
+              }}
+              handleClasses={{ right: "resize-handle" }}
+              onResizeStop={(e, direction, ref, d) => {
+                if (containerRef.current) {
+                  const containerWidth = containerRef.current.offsetWidth;
+                  const newWidthPercentage =
+                    (((calcJsWidth * containerWidth) / 100 + d.width) /
+                      containerWidth) *
+                    100;
+                  setJsWidth(
+                    Math.max(
+                      10,
+                      Math.min(
+                        100 - (calcHtmlWidth + calcCssWidth) - 10,
+                        newWidthPercentage
+                      )
+                    )
+                  );
+                }
+              }}
+              className="min-h-0"
+            >
+              <div className="h-full">
                 <CodeEditor
                   language="javascript"
                   value={js}
@@ -588,23 +511,7 @@ ${js || "// No JavaScript"}
                   onToggleCollapse={() => setJsCollapsed(true)}
                 />
               </div>
-              <div
-                className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  if (containerRef.current) {
-                    setResizeStart({
-                      x: e.clientX,
-                      htmlWidth: calcHtmlWidth,
-                      cssWidth: calcCssWidth,
-                      jsWidth: calcJsWidth,
-                    });
-                    setIsResizing("js");
-                  }
-                }}
-                style={{ minWidth: "4px" }}
-              />
-            </>
+            </Resizable>
           )}
 
           {/* Preview/Console Panel */}
@@ -635,7 +542,11 @@ ${js || "// No JavaScript"}
               </button>
             </div>
             <div className="flex-1 min-h-0 relative h-full">
-              <div className={`absolute inset-0 ${activeTab === "preview" ? "block" : "hidden"}`}>
+              <div
+                className={`absolute inset-0 ${
+                  activeTab === "preview" ? "block" : "hidden"
+                }`}
+              >
                 <Preview
                   ref={previewRef}
                   html={html}
@@ -645,8 +556,16 @@ ${js || "// No JavaScript"}
                   shouldRun={shouldRunCode}
                 />
               </div>
-              <div className={`absolute inset-0 ${activeTab === "console" ? "block" : "hidden"}`}>
-                <Console logs={consoleLogs} onRun={handleRunCode} onClear={handleClearConsole} />
+              <div
+                className={`absolute inset-0 ${
+                  activeTab === "console" ? "block" : "hidden"
+                }`}
+              >
+                <Console
+                  logs={consoleLogs}
+                  onRun={handleRunCode}
+                  onClear={handleClearConsole}
+                />
               </div>
             </div>
           </div>
