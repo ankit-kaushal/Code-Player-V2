@@ -248,6 +248,11 @@ export default function Home() {
     }
   };
 
+  console.log("Email configuration:", {
+    emailUser: process.env.EMAIL_USER || "NOT SET",
+    hasEmailPassword: !!process.env.EMAIL_PASSWORD,
+  });
+
   const handleDownload = () => {
     const content = `<!DOCTYPE html>
 <html lang="en">

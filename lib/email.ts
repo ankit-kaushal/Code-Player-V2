@@ -8,12 +8,6 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Log email user for testing
-console.log('Email configuration:', {
-  emailUser: process.env.EMAIL_USER || 'NOT SET',
-  hasEmailPassword: !!process.env.EMAIL_PASSWORD
-});
-
 export const sendOTP = async (email: string, otp: string): Promise<boolean> => {
   try {
     const mailOptions = {
@@ -36,7 +30,16 @@ export const sendOTP = async (email: string, otp: string): Promise<boolean> => {
     await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
+    const hasEmailUser = !!process.env.EMAIL_USER;
+    const hasEmailPassword = !!process.env.EMAIL_PASSWORD;
+    
     console.error('Error sending OTP email:', error);
+    if (!hasEmailUser || !hasEmailPassword) {
+      console.error('Email configuration missing:', {
+        emailUser: hasEmailUser ? 'SET' : 'NOT PRESENT',
+        emailPassword: hasEmailPassword ? 'SET' : 'NOT PRESENT'
+      });
+    }
     throw error;
   }
 };
@@ -65,7 +68,16 @@ export const sendTestEmail = async (email: string, html: string, css: string, js
     await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
+    const hasEmailUser = !!process.env.EMAIL_USER;
+    const hasEmailPassword = !!process.env.EMAIL_PASSWORD;
+    
     console.error('Error sending test email:', error);
+    if (!hasEmailUser || !hasEmailPassword) {
+      console.error('Email configuration missing:', {
+        emailUser: hasEmailUser ? 'SET' : 'NOT PRESENT',
+        emailPassword: hasEmailPassword ? 'SET' : 'NOT PRESENT'
+      });
+    }
     throw error;
   }
 };
