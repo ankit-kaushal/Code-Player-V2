@@ -4,9 +4,9 @@
   "description": "A code player for HTML, CSS, and JavaScript with sharing and email features",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "dotenv -e .env.local -e .env -- next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "dotenv -e .env.local -e .env -- next start",
     "lint": "next lint"
   },
   "dependencies": {
@@ -28,6 +28,8 @@
     "@types/react-dom": "^18.2.0",
     "@types/uuid": "^9.0.0",
     "autoprefixer": "^10.4.16",
+    "cross-env": "^10.1.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^8.0.0",
     "eslint-config-next": "^14.0.0",
     "postcss": "^8.4.31",

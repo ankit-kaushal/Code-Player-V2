@@ -58,13 +58,41 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    const cashfreeResponse = await fetch('https://api.cashfree.com/pg/orders', {
+    const cashfreeAppId = process.env.CASHFREE_APP_ID;
+    const cashfreeSecretKey = process.env.CASHFREE_SECRET_KEY;
+    const cashfreeMode = process.env.NEXT_PUBLIC_CASHFREE_MODE || 'sandbox';
+
+    if (!cashfreeAppId || !cashfreeSecretKey) {
+      console.error('Cashfree credentials missing:', {
+        hasAppId: !!cashfreeAppId,
+        hasSecretKey: !!cashfreeSecretKey,
+      });
+      return NextResponse.json(
+        { error: 'Cashfree credentials not configured. Please check CASHFREE_APP_ID and CASHFREE_SECRET_KEY environment variables.' },
+        { status: 500 }
+      );
+    }
+
+    const apiUrl = cashfreeMode === 'production' 
+      ? 'https://api.cashfree.com/pg/orders'
+      : 'https://sandbox.cashfree.com/pg/orders';
+
+    console.log('Creating Cashfree order:', {
+      mode: cashfreeMode,
+      apiUrl,
+      orderId,
+      orderAmount: packageData.price,
+      hasAppId: !!cashfreeAppId,
+      hasSecretKey: !!cashfreeSecretKey,
+    });
+
+    const cashfreeResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-version': '2023-08-01',
-        'x-client-id': process.env.CASHFREE_APP_ID || '',
-        'x-client-secret': process.env.CASHFREE_SECRET_KEY || '',
+        'x-client-id': cashfreeAppId,
+        'x-client-secret': cashfreeSecretKey,
       },
       body: JSON.stringify(sessionData),
     });
@@ -72,16 +100,45 @@ export async function POST(req: NextRequest) {
     const cashfreeData = await cashfreeResponse.json();
 
     if (!cashfreeResponse.ok) {
-      console.error('Cashfree API error:', cashfreeData);
+      console.error('Cashfree API error:', {
+        status: cashfreeResponse.status,
+        statusText: cashfreeResponse.statusText,
+        response: JSON.stringify(cashfreeData, null, 2),
+        mode: cashfreeMode,
+        apiUrl,
+      });
+      
+      let errorMessage = 'Failed to create payment session';
+      if (cashfreeResponse.status === 401 || cashfreeResponse.status === 403) {
+        errorMessage = 'Cashfree authentication failed. Please check your CASHFREE_APP_ID and CASHFREE_SECRET_KEY. Make sure you are using the correct credentials for ' + cashfreeMode + ' mode.';
+      } else if (cashfreeData.message) {
+        errorMessage = cashfreeData.message;
+      } else if (cashfreeData.error?.message) {
+        errorMessage = cashfreeData.error.message;
+      }
+      
       return NextResponse.json(
-        { error: cashfreeData.message || 'Failed to create payment session' },
+        { error: errorMessage },
+        { status: cashfreeResponse.status || 500 }
+      );
+    }
+
+    console.log('Cashfree order response:', JSON.stringify(cashfreeData, null, 2));
+
+    // Cashfree returns payment_session_id in the response
+    const paymentSessionId = cashfreeData.payment_session_id || cashfreeData.paymentSessionId || cashfreeData.payment_sessionId;
+    
+    if (!paymentSessionId) {
+      console.error('Cashfree response missing payment_session_id. Full response:', JSON.stringify(cashfreeData, null, 2));
+      return NextResponse.json(
+        { error: 'Payment session ID not found in response. Please check Cashfree API response structure.' },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
-      paymentSessionId: cashfreeData.payment_session_id,
-      orderId,
+      paymentSessionId,
+      orderId: cashfreeData.order_id || orderId,
       orderAmount: packageData.price,
       orderCurrency: 'INR',
       packageId,
