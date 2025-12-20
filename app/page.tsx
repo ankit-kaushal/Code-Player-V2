@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./context/AuthContext";
 import CodeEditor from "./components/CodeEditor";
-import Preview from "./components/Preview";
+import Preview, { PreviewHandle } from "./components/Preview";
 import Console from "./components/Console";
 import LoginModal from "./components/LoginModal";
 import EmailModal from "./components/EmailModal";
@@ -29,6 +29,8 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([]);
   const [activeTab, setActiveTab] = useState<"preview" | "console">("preview");
+  const [shouldRunCode, setShouldRunCode] = useState(false);
+  const previewRef = useRef<PreviewHandle>(null);
 
   // Collapsible states
   const [htmlCollapsed, setHtmlCollapsed] = useState(false);
@@ -300,6 +302,29 @@ ${js || "// No JavaScript"}
     setConsoleLogs([...logs]);
   };
 
+  const handleRunCode = () => {
+    setConsoleLogs([]);
+    // Always try to use the ref first
+    if (previewRef.current) {
+      try {
+        previewRef.current.runCode();
+      } catch (error) {
+        console.error('Error running code via ref:', error);
+        // Fallback: trigger via shouldRunCode state
+        setShouldRunCode(true);
+        setTimeout(() => setShouldRunCode(false), 100);
+      }
+    } else {
+      // Fallback: trigger via shouldRunCode state
+      setShouldRunCode(true);
+      setTimeout(() => setShouldRunCode(false), 100);
+    }
+  };
+
+  const handleClearConsole = () => {
+    setConsoleLogs([]);
+  };
+
   // Reset widths to equal when editors are collapsed/expanded
   useEffect(() => {
     const visibleEditors = [!htmlCollapsed, !cssCollapsed, !jsCollapsed].filter(
@@ -564,10 +589,10 @@ ${js || "// No JavaScript"}
 
           {/* Preview/Console Panel */}
           <div
-            className="min-h-0 flex flex-col"
+            className="min-h-0 flex flex-col h-full"
             style={{ width: `${previewWidth}%` }}
           >
-            <div className="flex border-b border-gray-300 bg-gray-100">
+            <div className="flex border-b border-gray-300 bg-gray-100 flex-shrink-0">
               <button
                 onClick={() => setActiveTab("preview")}
                 className={`px-4 py-2 text-sm font-medium ${
@@ -589,17 +614,20 @@ ${js || "// No JavaScript"}
                 Console ({consoleLogs.length})
               </button>
             </div>
-            <div className="flex-1 min-h-0">
-              {activeTab === "preview" ? (
+            <div className="flex-1 min-h-0 relative h-full">
+              <div className={`absolute inset-0 ${activeTab === "preview" ? "block" : "hidden"}`}>
                 <Preview
+                  ref={previewRef}
                   html={html}
                   css={css}
                   js={js}
                   onConsoleLog={handleConsoleLog}
+                  shouldRun={shouldRunCode}
                 />
-              ) : (
-                <Console logs={consoleLogs} />
-              )}
+              </div>
+              <div className={`absolute inset-0 ${activeTab === "console" ? "block" : "hidden"}`}>
+                <Console logs={consoleLogs} onRun={handleRunCode} onClear={handleClearConsole} />
+              </div>
             </div>
           </div>
         </div>

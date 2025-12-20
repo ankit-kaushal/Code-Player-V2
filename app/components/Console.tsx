@@ -10,9 +10,11 @@ interface ConsoleLog {
 
 interface ConsoleProps {
   logs: ConsoleLog[];
+  onRun?: () => void;
+  onClear?: () => void;
 }
 
-const Console: React.FC<ConsoleProps> = ({ logs }) => {
+const Console: React.FC<ConsoleProps> = ({ logs, onRun, onClear }) => {
   const consoleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,8 +51,26 @@ const Console: React.FC<ConsoleProps> = ({ logs }) => {
 
   return (
     <div className="flex flex-col h-full border border-gray-300 rounded overflow-hidden">
-      <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 text-xs font-bold text-gray-600">
-        Console
+      <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 flex items-center justify-between">
+        <span className="text-xs font-bold text-gray-600">Console</span>
+        <div className="flex gap-2">
+          {onClear && (
+            <button
+              onClick={onClear}
+              className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 font-semibold"
+            >
+              Clear
+            </button>
+          )}
+          {onRun && (
+            <button
+              onClick={onRun}
+              className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 font-semibold"
+            >
+              ▶ Run
+            </button>
+          )}
+        </div>
       </div>
       <div
         ref={consoleRef}

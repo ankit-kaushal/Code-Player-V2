@@ -108,4 +108,5 @@ export const COLLECTIONS = {
   USERS: 'users',
   CODES: 'codes',
   EMAIL_SENT: 'email_sent',
+  OTPS: 'otps',
 } as const;

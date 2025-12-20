@@ -11,16 +11,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
     }
 
+    const normalizedEmail = email.toLowerCase().trim();
     const otp = generateOTP();
 
-    setOTP(email, otp);
+
+
+    await setOTP(normalizedEmail, otp);
 
     try {
-      await sendOTP(email, otp);
+      await sendOTP(normalizedEmail, otp);
       return NextResponse.json({ message: 'OTP sent to your email' });
     } catch (emailError) {
       console.error('Error sending email:', emailError);
-      deleteOTP(email);
+      await deleteOTP(normalizedEmail);
       return NextResponse.json({ error: 'Failed to send OTP email' }, { status: 500 });
     }
   } catch (error) {

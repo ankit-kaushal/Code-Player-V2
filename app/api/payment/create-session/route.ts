@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
+import { getCollection, COLLECTIONS } from '@/lib/database';
+import { ObjectId } from 'mongodb';
 
 const EMAIL_PACKAGES = {
   '1': { emails: 1, price: 5.00 },
@@ -24,6 +26,11 @@ export async function POST(req: NextRequest) {
 
     const packageData = EMAIL_PACKAGES[packageId as keyof typeof EMAIL_PACKAGES];
     const orderId = `order_${user.userId}_${Date.now()}`;
+
+    // Get user details including phone number
+    const usersCollection = await getCollection(COLLECTIONS.USERS);
+    const userDoc = await usersCollection.findOne({ _id: new ObjectId(user.userId) });
+    const userPhone = userDoc?.phone || '9999999999';
 
     let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     
@@ -50,7 +57,7 @@ export async function POST(req: NextRequest) {
       customer_details: {
         customer_id: user.userId,
         customer_email: user.email || '',
-        customer_phone: '9999999999',
+        customer_phone: userPhone || '9999999999',
       },
       order_meta: {
         return_url: returnUrl,
