@@ -2,9 +2,15 @@ import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
@@ -29,16 +35,30 @@ export const sendOTP = async (email: string, otp: string): Promise<boolean> => {
 
     await transporter.sendMail(mailOptions);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     const hasEmailUser = !!process.env.EMAIL_USER;
     const hasEmailPassword = !!process.env.EMAIL_PASSWORD;
     
     console.error('Error sending OTP email:', error);
+    console.error('Error details:', {
+      code: error.code,
+      responseCode: error.responseCode,
+      command: error.command,
+      response: error.response
+    });
+    
     if (!hasEmailUser || !hasEmailPassword) {
       console.error('Email configuration missing:', {
         emailUser: hasEmailUser ? 'SET' : 'NOT PRESENT',
         emailPassword: hasEmailPassword ? 'SET' : 'NOT PRESENT'
       });
+    } else if (error.code === 'EAUTH' || error.responseCode === 535) {
+      console.error('Gmail authentication failed. Common causes:');
+      console.error('1. App Password is incorrect or expired');
+      console.error('2. 2-Step Verification is not enabled');
+      console.error('3. Gmail is blocking login from this location (Vercel servers)');
+      console.error('4. Environment variables not set correctly in Vercel');
+      console.error('Solution: Check Vercel environment variables and regenerate App Password');
     }
     throw error;
   }
@@ -67,16 +87,30 @@ export const sendTestEmail = async (email: string, html: string, css: string, js
 
     await transporter.sendMail(mailOptions);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     const hasEmailUser = !!process.env.EMAIL_USER;
     const hasEmailPassword = !!process.env.EMAIL_PASSWORD;
     
     console.error('Error sending test email:', error);
+    console.error('Error details:', {
+      code: error.code,
+      responseCode: error.responseCode,
+      command: error.command,
+      response: error.response
+    });
+    
     if (!hasEmailUser || !hasEmailPassword) {
       console.error('Email configuration missing:', {
         emailUser: hasEmailUser ? 'SET' : 'NOT PRESENT',
         emailPassword: hasEmailPassword ? 'SET' : 'NOT PRESENT'
       });
+    } else if (error.code === 'EAUTH' || error.responseCode === 535) {
+      console.error('Gmail authentication failed. Common causes:');
+      console.error('1. App Password is incorrect or expired');
+      console.error('2. 2-Step Verification is not enabled');
+      console.error('3. Gmail is blocking login from this location (Vercel servers)');
+      console.error('4. Environment variables not set correctly in Vercel');
+      console.error('Solution: Check Vercel environment variables and regenerate App Password');
     }
     throw error;
   }
