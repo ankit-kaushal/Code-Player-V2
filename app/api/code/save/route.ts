@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCollection, COLLECTIONS } from '@/lib/database';
 import { verifyToken } from '@/lib/auth';
-import { v4 as uuidv4 } from 'uuid';
+import { generateUniqueSlug } from '@/lib/slug-generator';
 import { ObjectId } from 'mongodb';
 
 export async function POST(req: NextRequest) {
@@ -35,8 +35,8 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ message: 'Code updated', shareId });
     } else {
-      // Create new code
-      const newShareId = uuidv4();
+      // Create new code with short slug
+      const newShareId = await generateUniqueSlug(7);
       await codesCollection.insertOne({
         userId: new ObjectId(user.userId),
         shareId: newShareId,
