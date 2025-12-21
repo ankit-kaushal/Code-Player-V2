@@ -1,0 +1,17 @@
+{
+  "name": "Code Player - Online HTML, CSS & JavaScript Editor",
+  "short_name": "Code Player",
+  "description": "Create, edit, and preview HTML, CSS, and JavaScript code in real-time. Share your code snippets with a simple link.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f2937",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
+

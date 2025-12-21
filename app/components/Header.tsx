@@ -89,14 +89,15 @@ export default function Header({
   }, [showUserMenu]);
 
   return (
-    <header className="bg-gray-800 text-white p-2 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 shadow-md z-10">
-      <Link href="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer">
+    <header role="banner" className="bg-gray-800 text-white p-2 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 shadow-md z-10">
+      <Link href="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer" aria-label="Code Player Home">
         <Image
           src="/logo.png"
-          alt="Code Player"
+          alt="Code Player - Online HTML, CSS & JavaScript Editor"
           width={120}
           height={120}
           className="w-20 sm:w-auto h-auto"
+          priority
         />
       </Link>
       <div className="flex gap-1 sm:gap-2 items-center flex-wrap justify-center sm:justify-end w-full sm:w-auto">

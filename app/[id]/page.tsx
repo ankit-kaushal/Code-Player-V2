@@ -355,7 +355,8 @@ ${js || "// No JavaScript"}
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-gray-100">
+    <main className="h-screen flex flex-col overflow-hidden bg-gray-100">
+      <h1 className="sr-only">Shared Code - {shareId} | Code Player</h1>
       <Header
         showEmailButton={true}
         showShareButton={false}
@@ -639,6 +640,6 @@ ${js || "// No JavaScript"}
         css={css}
         js={js}
       />
-    </div>
+    </main>
   );
 }
