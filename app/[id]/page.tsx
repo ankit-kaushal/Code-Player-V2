@@ -130,6 +130,46 @@ export default function SharedCodePage() {
     }
   };
 
+  const handleSave = async () => {
+    if (!user || !shareId) {
+      return;
+    }
+
+    setSaving(true);
+    setMessage("");
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found");
+      }
+
+      // Update existing code
+      const response = await fetch("/api/code/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ html, css, js, shareId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save");
+      }
+
+      setMessage("Code saved successfully!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error: any) {
+      setMessage(error.message || "Failed to save code");
+      setTimeout(() => setMessage(""), 3000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleShare = async () => {
     if (!user) {
       setIsLoginModalOpen(true);
@@ -318,14 +358,15 @@ ${js || "// No JavaScript"}
     <div className="h-screen flex flex-col overflow-hidden bg-gray-100">
       <Header
         showEmailButton={true}
-        showShareButton={true}
+        showShareButton={false}
+        showSaveButton={true}
         showDownloadButton={true}
         onEmailClick={handleEmailClick}
-        onShareClick={handleShare}
+        onSaveClick={handleSave}
         onDownloadClick={handleDownload}
         onLoginClick={() => setIsLoginModalOpen(true)}
         shareDisabled={!canEdit}
-        shareLoading={saving}
+        saveLoading={saving}
       />
 
       {message && (

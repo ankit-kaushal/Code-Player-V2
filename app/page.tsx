@@ -70,10 +70,21 @@ export default function Home() {
 
   useEffect(() => {
     // Check if viewing a shared code from URL path
+    if (typeof window === "undefined") return;
+
     const pathParts = window.location.pathname.split("/").filter(Boolean);
-    if (pathParts.length > 0 && pathParts[0] !== "api") {
+    if (
+      pathParts.length > 0 &&
+      pathParts[0] !== "api" &&
+      pathParts[0] !== "account"
+    ) {
       const sharedId = pathParts[0];
+      // Set shareId immediately from URL so Header shows correct button
+      setShareId(sharedId);
       loadSharedCode(sharedId);
+    } else if (pathParts.length === 0) {
+      // On root path, clear shareId
+      setShareId(null);
     }
   }, []);
 
@@ -116,6 +127,46 @@ export default function Home() {
     }
   };
 
+  const handleSave = async () => {
+    if (!user || !shareId) {
+      return;
+    }
+
+    setSaving(true);
+    setMessage("");
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found");
+      }
+
+      // Update existing code
+      const response = await fetch("/api/code/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ html, css, js, shareId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save");
+      }
+
+      setMessage("Code saved successfully!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error: any) {
+      setMessage(error.message || "Failed to save code");
+      setTimeout(() => setMessage(""), 3000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleShare = async () => {
     if (!user) {
       setIsLoginModalOpen(true);
@@ -131,14 +182,14 @@ export default function Home() {
         throw new Error("No token found");
       }
 
-      // Save the code first
+      // Save the code without shareId to create new
       const response = await fetch("/api/code/save", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ html, css, js, shareId }),
+        body: JSON.stringify({ html, css, js }),
       });
 
       const data = await response.json();
@@ -314,13 +365,16 @@ ${js || "// No JavaScript"}
     <div className="h-screen flex flex-col overflow-hidden bg-gray-100">
       <Header
         showEmailButton={true}
-        showShareButton={true}
+        showShareButton={!shareId}
+        showSaveButton={!!shareId}
         showDownloadButton={true}
         onEmailClick={handleEmailClick}
         onShareClick={handleShare}
+        onSaveClick={handleSave}
         onDownloadClick={handleDownload}
         shareDisabled={!canEdit}
         shareLoading={saving}
+        saveLoading={saving}
         onLoginClick={() => setIsLoginModalOpen(true)}
       />
 

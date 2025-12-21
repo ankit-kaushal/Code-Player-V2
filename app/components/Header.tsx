@@ -9,25 +9,31 @@ import { useAuth } from "../context/AuthContext";
 interface HeaderProps {
   showEmailButton?: boolean;
   showShareButton?: boolean;
+  showSaveButton?: boolean;
   showDownloadButton?: boolean;
   onEmailClick?: () => void;
   onShareClick?: () => void;
+  onSaveClick?: () => void;
   onDownloadClick?: () => void;
   onLoginClick?: () => void;
   shareDisabled?: boolean;
   shareLoading?: boolean;
+  saveLoading?: boolean;
 }
 
 export default function Header({
   showEmailButton = false,
   showShareButton = false,
+  showSaveButton = false,
   showDownloadButton = false,
   onEmailClick,
   onShareClick,
+  onSaveClick,
   onDownloadClick,
   onLoginClick,
   shareDisabled = false,
   shareLoading = false,
+  saveLoading = false,
 }: HeaderProps) {
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -104,13 +110,22 @@ export default function Header({
                 📧 Creating this for email
               </button>
             )}
-            {showShareButton && (
+            {showShareButton && !showSaveButton && (
               <button
                 onClick={onShareClick}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-sm font-medium"
                 disabled={shareDisabled || shareLoading}
               >
                 {shareLoading ? "Saving & Sharing..." : "Share"}
+              </button>
+            )}
+            {showSaveButton && (
+              <button
+                onClick={onSaveClick}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-sm font-medium"
+                disabled={shareDisabled || saveLoading}
+              >
+                {saveLoading ? "Saving..." : "Save"}
               </button>
             )}
             {showDownloadButton && (
