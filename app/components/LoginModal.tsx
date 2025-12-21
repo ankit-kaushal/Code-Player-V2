@@ -134,7 +134,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       onClick={handleClose}
     >
       <div
-        className="bg-white p-8 rounded-lg max-w-2xl w-full mx-4 relative shadow-xl"
+        className="bg-white p-4 sm:p-8 rounded-lg max-w-2xl w-full mx-2 sm:mx-4 relative shadow-xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button

@@ -384,7 +384,7 @@ ${js || "// No JavaScript"}
       <div className="flex-1 flex relative min-h-0">
         {/* Collapsed Editors Sidebar */}
         {(htmlCollapsed || cssCollapsed || jsCollapsed) && (
-          <div className="w-16 bg-gray-200 border-r border-gray-300 flex flex-col items-center py-3 gap-2 flex-shrink-0">
+          <div className="hidden md:flex w-16 bg-gray-200 border-r border-gray-300 flex-col items-center py-3 gap-2 flex-shrink-0">
             {htmlCollapsed && (
               <button
                 onClick={() => setHtmlCollapsed(false)}
@@ -554,10 +554,23 @@ ${js || "// No JavaScript"}
               </div>
             </Resizable>
           )}
+          {/* JS Editor - Mobile */}
+          {!jsCollapsed && (
+            <div className="md:hidden w-full h-48 border border-gray-300 rounded">
+              <CodeEditor
+                language="javascript"
+                value={js}
+                onChange={setJs}
+                readOnly={!canEdit}
+                isCollapsed={jsCollapsed}
+                onToggleCollapse={() => setJsCollapsed(true)}
+              />
+            </div>
+          )}
 
-          {/* Preview/Console Panel */}
+          {/* Preview/Console Panel - Desktop */}
           <div
-            className="min-h-0 flex flex-col h-full"
+            className="hidden md:flex min-h-0 flex-col h-full"
             style={{ width: `${previewWidth}%` }}
           >
             <div className="flex border-b border-gray-300 bg-gray-100 flex-shrink-0">

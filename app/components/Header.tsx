@@ -89,40 +89,45 @@ export default function Header({
   }, [showUserMenu]);
 
   return (
-    <header className="bg-gray-800 text-white p-4 flex justify-between items-center shadow-md z-10">
-      <Link href="/" className="flex items-center gap-3 cursor-pointer">
+    <header className="bg-gray-800 text-white p-2 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 shadow-md z-10">
+      <Link href="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer">
         <Image
           src="/logo.png"
           alt="Code Player"
           width={120}
           height={120}
-          className="w-auto"
+          className="w-20 sm:w-auto h-auto"
         />
       </Link>
-      <div className="flex gap-2 items-center flex-wrap">
+      <div className="flex gap-1 sm:gap-2 items-center flex-wrap justify-center sm:justify-end w-full sm:w-auto">
         {user ? (
           <>
             {showEmailButton && (
               <button
                 onClick={onEmailClick}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm font-medium"
+                className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-xs sm:text-sm font-medium"
               >
-                📧 Creating this for email
+                <span className="hidden sm:inline">📧 Creating this for email</span>
+                <span className="sm:hidden">📧 Email</span>
               </button>
             )}
             {showShareButton && !showSaveButton && (
               <button
                 onClick={onShareClick}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-sm font-medium"
+                className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
                 disabled={shareDisabled || shareLoading}
               >
-                {shareLoading ? "Saving & Sharing..." : "Share"}
+                {shareLoading ? (
+                  <span className="hidden sm:inline">Saving & Sharing...</span>
+                ) : (
+                  "Share"
+                )}
               </button>
             )}
             {showSaveButton && (
               <button
                 onClick={onSaveClick}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-sm font-medium"
+                className="px-2 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
                 disabled={shareDisabled || saveLoading}
               >
                 {saveLoading ? "Saving..." : "Save"}
@@ -131,7 +136,7 @@ export default function Header({
             {showDownloadButton && (
               <button
                 onClick={onDownloadClick}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm font-medium"
               >
                 Download
               </button>
@@ -198,7 +203,7 @@ export default function Header({
         ) : (
           <button
             onClick={onLoginClick || (() => router.push("/"))}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+            className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm font-medium"
           >
             Login
           </button>

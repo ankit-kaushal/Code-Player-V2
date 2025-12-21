@@ -393,7 +393,7 @@ ${js || "// No JavaScript"}
       <div className="flex-1 flex relative min-h-0">
         {/* Collapsed Editors Sidebar */}
         {(htmlCollapsed || cssCollapsed || jsCollapsed) && (
-          <div className="w-16 bg-gray-200 border-r border-gray-300 flex flex-col items-center py-3 gap-2 flex-shrink-0">
+          <div className="hidden md:flex w-16 bg-gray-200 border-r border-gray-300 flex-col items-center py-3 gap-2 flex-shrink-0">
             {htmlCollapsed && (
               <button
                 onClick={() => setHtmlCollapsed(false)}
@@ -424,12 +424,149 @@ ${js || "// No JavaScript"}
           </div>
         )}
 
+        {/* Mobile Layout - Stacked Vertically */}
+        <div className="md:hidden flex-1 flex flex-col gap-2 p-2 min-h-0 overflow-hidden">
+          {/* Collapsed Editors Buttons - Mobile */}
+          {(htmlCollapsed || cssCollapsed || jsCollapsed) && (
+            <div className="flex gap-2 flex-wrap mb-2">
+              {htmlCollapsed && (
+                <button
+                  onClick={() => setHtmlCollapsed(false)}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow"
+                >
+                  Reopen HTML
+                </button>
+              )}
+              {cssCollapsed && (
+                <button
+                  onClick={() => setCssCollapsed(false)}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow"
+                >
+                  Reopen CSS
+                </button>
+              )}
+              {jsCollapsed && (
+                <button
+                  onClick={() => setJsCollapsed(false)}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow"
+                >
+                  Reopen JS
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* HTML Editor - Mobile */}
+          {!htmlCollapsed && (
+            <div className="w-full flex-shrink-0" style={{ height: "200px" }}>
+              <CodeEditor
+                language="html"
+                value={html}
+                onChange={setHtml}
+                readOnly={!canEdit}
+                isCollapsed={htmlCollapsed}
+                onToggleCollapse={() => setHtmlCollapsed(true)}
+              />
+            </div>
+          )}
+
+          {/* CSS Editor - Mobile */}
+          {!cssCollapsed && (
+            <div className="w-full flex-shrink-0" style={{ height: "200px" }}>
+              <CodeEditor
+                language="css"
+                value={css}
+                onChange={setCss}
+                readOnly={!canEdit}
+                isCollapsed={cssCollapsed}
+                onToggleCollapse={() => setCssCollapsed(true)}
+              />
+            </div>
+          )}
+
+          {/* JS Editor - Mobile */}
+          {!jsCollapsed && (
+            <div className="w-full flex-shrink-0" style={{ height: "200px" }}>
+              <CodeEditor
+                language="javascript"
+                value={js}
+                onChange={setJs}
+                readOnly={!canEdit}
+                isCollapsed={jsCollapsed}
+                onToggleCollapse={() => setJsCollapsed(true)}
+              />
+            </div>
+          )}
+
+          {/* Preview/Console Panel - Mobile */}
+          <div
+            className="w-full border border-gray-300 rounded flex flex-col flex-1 min-h-0"
+            style={{ height: 0 }}
+          >
+            <div className="flex border-b border-gray-300 bg-gray-100 flex-shrink-0">
+              <button
+                onClick={() => setActiveTab("preview")}
+                className={`px-4 py-2 text-sm font-medium ${
+                  activeTab === "preview"
+                    ? "bg-white border-b-2 border-blue-600 text-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                Preview
+              </button>
+              <button
+                onClick={() => setActiveTab("console")}
+                className={`px-4 py-2 text-sm font-medium ${
+                  activeTab === "console"
+                    ? "bg-white border-b-2 border-blue-600 text-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                Console ({consoleLogs.length})
+              </button>
+            </div>
+            <div
+              className="flex-1 min-h-0 relative overflow-hidden"
+              style={{ height: "100%" }}
+            >
+              <div
+                className={`absolute inset-0 w-full h-full ${
+                  activeTab === "preview" ? "flex" : "hidden"
+                }`}
+                style={{ flexDirection: "column" }}
+              >
+                <Preview
+                  ref={previewRef}
+                  html={html}
+                  css={css}
+                  js={js}
+                  onConsoleLog={handleConsoleLog}
+                  shouldRun={shouldRunCode}
+                />
+              </div>
+              <div
+                className={`absolute inset-0 w-full h-full ${
+                  activeTab === "console" ? "flex" : "hidden"
+                }`}
+                style={{ flexDirection: "column" }}
+              >
+                <Console
+                  logs={consoleLogs}
+                  onRun={handleRunCode}
+                  onClear={handleClearConsole}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Layout - Horizontal with Resizable */}
         <div
           ref={containerRef}
-          className="flex-1 flex gap-2 p-2 min-h-0"
+          className="hidden md:flex flex-1 flex-row gap-2 p-2 min-h-0"
           style={{ position: "relative" }}
         >
-          {/* HTML Editor */}
+          {/* HTML Editor - Desktop */}
           {!htmlCollapsed && (
             <Resizable
               size={{ width: `${calcHtmlWidth}%`, height: "100%" }}
@@ -476,7 +613,7 @@ ${js || "// No JavaScript"}
             </Resizable>
           )}
 
-          {/* CSS Editor */}
+          {/* CSS Editor - Desktop */}
           {!cssCollapsed && (
             <Resizable
               size={{ width: `${calcCssWidth}%`, height: "100%" }}
@@ -520,7 +657,7 @@ ${js || "// No JavaScript"}
             </Resizable>
           )}
 
-          {/* JS Editor */}
+          {/* JS Editor - Desktop */}
           {!jsCollapsed && (
             <Resizable
               size={{ width: `${calcJsWidth}%`, height: "100%" }}
@@ -564,9 +701,9 @@ ${js || "// No JavaScript"}
             </Resizable>
           )}
 
-          {/* Preview/Console Panel */}
+          {/* Preview/Console Panel - Desktop */}
           <div
-            className="min-h-0 flex flex-col h-full"
+            className="hidden md:flex min-h-0 flex-col h-full"
             style={{ width: `${previewWidth}%` }}
           >
             <div className="flex border-b border-gray-300 bg-gray-100 flex-shrink-0">

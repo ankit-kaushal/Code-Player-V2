@@ -192,11 +192,11 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
-      <div className="flex-1 py-8">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h1 className="text-3xl font-bold mb-4">My Account</h1>
-            <div className="flex items-center justify-between">
+      <div className="flex-1 py-4 sm:py-8">
+        <div className="max-w-4xl mx-auto px-2 sm:px-4">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-4">My Account</h1>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <p className="text-gray-600">Email: {user?.email}</p>
                 <p className="text-2xl font-bold text-blue-600 mt-2">
@@ -218,9 +218,9 @@ export default function AccountPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-2xl font-bold mb-4">Purchase Email Credits</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">Purchase Email Credits</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {EMAIL_PACKAGES.map((pkg) => (
                 <div
                   key={pkg.id}

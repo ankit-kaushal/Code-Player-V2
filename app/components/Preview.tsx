@@ -247,17 +247,19 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
     );
 
     return (
-      <div className="flex flex-col h-full border border-gray-300 rounded overflow-hidden">
-        <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 text-xs font-bold text-gray-600">
+      <div className="flex flex-col h-full w-full border border-gray-300 rounded overflow-hidden">
+        <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 text-xs font-bold text-gray-600 flex-shrink-0">
           Preview
         </div>
-        <iframe
-          ref={iframeRef}
-          title="preview"
-          className="flex-1 w-full border-none bg-white"
-          sandbox="allow-scripts allow-same-origin"
-          style={{ display: "block" }}
-        />
+        <div className="flex-1 min-h-0 overflow-auto">
+          <iframe
+            ref={iframeRef}
+            title="preview"
+            className="w-full h-full border-none bg-white"
+            sandbox="allow-scripts allow-same-origin"
+            style={{ display: "block", minHeight: "100%" }}
+          />
+        </div>
       </div>
     );
   }
