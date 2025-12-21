@@ -1,10 +1,13 @@
-import type { Metadata } from 'next';
-import { AuthProvider } from './context/AuthContext';
-import './globals.css';
+import type { Metadata } from "next";
+import { AuthProvider } from "./context/AuthContext";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'Code Player',
-  description: 'A code player for HTML, CSS, and JavaScript',
+  title: "Code Player",
+  description: "A code player for HTML, CSS, and JavaScript",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
@@ -20,4 +23,3 @@ export default function RootLayout({
     </html>
   );
 }
-

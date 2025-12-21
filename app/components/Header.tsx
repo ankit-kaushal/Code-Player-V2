@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
 
 interface HeaderProps {
@@ -33,7 +35,6 @@ export default function Header({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Fetch user credits
   useEffect(() => {
     const fetchCredits = async () => {
       if (!user) {
@@ -83,7 +84,15 @@ export default function Header({
 
   return (
     <header className="bg-gray-800 text-white p-4 flex justify-between items-center shadow-md z-10">
-      <h1 className="text-2xl font-bold">Code Player</h1>
+      <Link href="/" className="flex items-center gap-3 cursor-pointer">
+        <Image
+          src="/logo.png"
+          alt="Code Player"
+          width={120}
+          height={120}
+          className="w-auto"
+        />
+      </Link>
       <div className="flex gap-2 items-center flex-wrap">
         {user ? (
           <>
