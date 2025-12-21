@@ -180,17 +180,17 @@ export default function AccountPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex flex-col">
+      <main className="min-h-screen bg-gray-100 flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-xl">Loading...</div>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <main className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
       <div className="flex-1 py-4 sm:py-8">
         <div className="max-w-4xl mx-auto px-2 sm:px-4">
@@ -219,7 +219,9 @@ export default function AccountPage() {
           )}
 
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold mb-4">Purchase Email Credits</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">
+              Purchase Email Credits
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {EMAIL_PACKAGES.map((pkg) => (
                 <div
