@@ -27,43 +27,56 @@ export async function POST(req: NextRequest) {
 
     let verifiedPaymentId = paymentId || 'N/A';
 
-    // If we have orderToken, verify payment status with Cashfree API
-    if (orderToken) {
-      try {
-        const cashfreeResponse = await fetch(`https://api.cashfree.com/pg/orders/${orderId}`, {
-          method: 'GET',
-          headers: {
-            'x-api-version': '2023-08-01',
-            'x-client-id': process.env.CASHFREE_APP_ID || '',
-            'x-client-secret': process.env.CASHFREE_SECRET_KEY || '',
-          },
-        });
+    // Always verify payment status with Cashfree API first
+    const cashfreeBaseUrl = process.env.NEXT_PUBLIC_CASHFREE_MODE === 'production'
+      ? 'https://api.cashfree.com'
+      : 'https://sandbox.cashfree.com';
 
-        const orderData = await cashfreeResponse.json();
+    try {
+      const cashfreeResponse = await fetch(`${cashfreeBaseUrl}/pg/orders/${orderId}`, {
+        method: 'GET',
+        headers: {
+          'x-api-version': '2023-08-01',
+          'x-client-id': process.env.CASHFREE_APP_ID || '',
+          'x-client-secret': process.env.CASHFREE_SECRET_KEY || '',
+        },
+      });
 
-        if (!cashfreeResponse.ok || orderData.order_status !== 'PAID') {
-          return NextResponse.json({ error: 'Payment not completed' }, { status: 400 });
+      if (!cashfreeResponse.ok) {
+        return NextResponse.json({ error: 'Failed to fetch order status from Cashfree' }, { status: 400 });
+      }
+
+      const orderData = await cashfreeResponse.json();
+
+      // Only proceed if payment is actually PAID
+      if (orderData.order_status !== 'PAID') {
+        return NextResponse.json({ 
+          error: 'Payment not completed',
+          orderStatus: orderData.order_status 
+        }, { status: 400 });
+      }
+
+      // Payment is verified, get payment ID
+      verifiedPaymentId = orderData.payment_details?.cf_payment_id || paymentId || 'N/A';
+    } catch (error) {
+      console.error('Error verifying with Cashfree:', error);
+      // If API call fails and we have signature, verify signature as fallback
+      if (signature && paymentId) {
+        const dataToVerify = `${orderId}${paymentId}`;
+        const secretKey = process.env.CASHFREE_SECRET_KEY || '';
+        const generatedSignature = crypto
+          .createHmac('sha256', secretKey)
+          .update(dataToVerify)
+          .digest('hex');
+
+        if (generatedSignature !== signature) {
+          return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
         }
-
-        // Payment is verified, get payment ID
-        verifiedPaymentId = orderData.payment_details?.cf_payment_id || paymentId || 'N/A';
-      } catch (error) {
-        console.error('Error verifying with Cashfree:', error);
+        verifiedPaymentId = paymentId;
+      } else {
+        // No way to verify payment, reject it
         return NextResponse.json({ error: 'Failed to verify payment status' }, { status: 500 });
       }
-    } else if (signature && paymentId) {
-      // Verify signature if provided
-      const dataToVerify = `${orderId}${paymentId}`;
-      const secretKey = process.env.CASHFREE_SECRET_KEY || '';
-      const generatedSignature = crypto
-        .createHmac('sha256', secretKey)
-        .update(dataToVerify)
-        .digest('hex');
-
-      if (generatedSignature !== signature) {
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
-      }
-      verifiedPaymentId = paymentId;
     }
 
     // Verify package

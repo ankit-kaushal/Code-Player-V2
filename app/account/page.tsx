@@ -98,26 +98,99 @@ export default function AccountPage() {
         );
       }
 
-      // Initialize Cashfree Checkout
+      // Wait for Cashfree SDK to be fully loaded
+      let retries = 0;
+      while (!window.Cashfree && retries < 20) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        retries++;
+      }
+
       if (!window.Cashfree) {
         throw new Error("Cashfree SDK not loaded. Please refresh the page.");
       }
 
+      const cashfreeMode =
+        (process.env.NEXT_PUBLIC_CASHFREE_MODE as "sandbox" | "production") ||
+        "sandbox";
+
+      // Initialize Cashfree
       const cashfree = window.Cashfree({
-        mode:
-          (process.env.NEXT_PUBLIC_CASHFREE_MODE as "sandbox" | "production") ||
-          "sandbox",
+        mode: cashfreeMode,
       });
 
-      const checkout = cashfree.checkout({
-        paymentSessionId: sessionData.paymentSessionId,
-        redirectTarget: "_self",
-      });
+      // Try to use checkout method
+      try {
+        const checkout = cashfree.checkout({
+          paymentSessionId: sessionData.paymentSessionId,
+          redirectTarget: "_self",
+        });
 
-      checkout.redirect();
+        // Check if redirect is a function
+        if (typeof checkout.redirect === "function") {
+          checkout.redirect();
+        } else if (typeof checkout === "function") {
+          // If checkout itself is a function, call it
+          checkout();
+        } else {
+          // Fallback: redirect manually
+          const baseUrl =
+            cashfreeMode === "production"
+              ? "https://www.cashfree.com"
+              : "https://sandbox.cashfree.com";
+          window.location.href = `${baseUrl}/checkout/post/submit?payment_session_id=${sessionData.paymentSessionId}`;
+        }
+      } catch (checkoutError: any) {
+        console.error("Error initializing checkout:", checkoutError);
+        // Fallback: redirect manually
+        const baseUrl =
+          cashfreeMode === "production"
+            ? "https://www.cashfree.com"
+            : "https://sandbox.cashfree.com";
+        window.location.href = `${baseUrl}/checkout/post/submit?payment_session_id=${sessionData.paymentSessionId}`;
+      }
     } catch (error: any) {
       setMessage(error.message || "Failed to initiate payment");
       setProcessing(false);
+    }
+  };
+
+  const checkPaymentStatus = async (orderId: string, packageId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const verifyResponse = await fetch("/api/payment/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          orderId,
+          packageId,
+          orderToken:
+            new URLSearchParams(window.location.search).get("order_token") ||
+            "",
+        }),
+      });
+
+      const verifyData = await verifyResponse.json();
+
+      if (verifyResponse.ok && verifyData.success) {
+        setMessage(
+          `Payment successful! ${verifyData.credits} credits added to your account.`
+        );
+        await loadCredits();
+      } else {
+        // Payment not completed, don't show error for cancelled payments
+        const paymentStatus = new URLSearchParams(window.location.search).get(
+          "payment_status"
+        );
+        if (paymentStatus !== "cancelled" && paymentStatus !== "failed") {
+          setMessage(verifyData.error || "Payment verification failed");
+        }
+      }
+      window.history.replaceState({}, "", "/account");
+    } catch (error: any) {
+      console.error("Error checking payment status:", error);
     }
   };
 
@@ -146,7 +219,7 @@ export default function AccountPage() {
 
       const verifyData = await verifyResponse.json();
 
-      if (verifyResponse.ok) {
+      if (verifyResponse.ok && verifyData.success) {
         setMessage(
           `Payment successful! ${verifyData.credits} credits added to your account.`
         );
@@ -166,14 +239,22 @@ export default function AccountPage() {
     // Check if returning from payment
     const urlParams = new URLSearchParams(window.location.search);
     const paymentStatus = urlParams.get("payment_status");
+    const orderId = urlParams.get("orderId");
+    const packageId = urlParams.get("packageId");
 
-    if (paymentStatus === "success") {
-      const orderId = urlParams.get("orderId");
-      const packageId = urlParams.get("packageId");
-
-      if (orderId && packageId) {
-        verifyPayment(orderId, packageId);
-      }
+    // Only verify payment if status is explicitly "success"
+    if (paymentStatus === "success" && orderId && packageId) {
+      setProcessing(true);
+      verifyPayment(orderId, packageId);
+    } else if (paymentStatus === "failed" || paymentStatus === "cancelled") {
+      // Handle failed or cancelled payments
+      setMessage("Payment was cancelled or failed. No credits were added.");
+      // Clean up URL
+      window.history.replaceState({}, "", "/account");
+    } else if (orderId && !paymentStatus) {
+      // If orderId exists but no status, check payment status from API
+      // This handles cases where user returns without explicit status
+      checkPaymentStatus(orderId, packageId || "");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
