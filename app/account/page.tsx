@@ -132,21 +132,25 @@ export default function AccountPage() {
           // If checkout itself is a function, call it
           checkout();
         } else {
-          // Fallback: redirect manually
+          // Fallback: redirect manually using correct Cashfree checkout URL
           const baseUrl =
             cashfreeMode === "production"
               ? "https://www.cashfree.com"
               : "https://sandbox.cashfree.com";
-          window.location.href = `${baseUrl}/checkout/post/submit?payment_session_id=${sessionData.paymentSessionId}`;
+          window.location.href = `${baseUrl}/pg/checkout?payment_session_id=${encodeURIComponent(
+            sessionData.paymentSessionId
+          )}`;
         }
       } catch (checkoutError: any) {
         console.error("Error initializing checkout:", checkoutError);
-        // Fallback: redirect manually
+        // Fallback: redirect manually using correct Cashfree checkout URL
         const baseUrl =
           cashfreeMode === "production"
             ? "https://www.cashfree.com"
             : "https://sandbox.cashfree.com";
-        window.location.href = `${baseUrl}/checkout/post/submit?payment_session_id=${sessionData.paymentSessionId}`;
+        window.location.href = `${baseUrl}/pg/checkout?payment_session_id=${encodeURIComponent(
+          sessionData.paymentSessionId
+        )}`;
       }
     } catch (error: any) {
       setMessage(error.message || "Failed to initiate payment");
