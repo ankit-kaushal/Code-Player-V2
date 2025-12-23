@@ -73,6 +73,31 @@ export default function AccountPage() {
     }
   };
 
+  const redirectToCashfree = (paymentSessionId: string, mode: string) => {
+    // Use the correct Cashfree checkout URL format
+    // Ensure we always use https://
+    const baseUrl =
+      mode === "production"
+        ? "https://www.cashfree.com"
+        : "https://sandbox.cashfree.com";
+
+    // Clean the payment session ID to ensure no extra characters
+    const cleanSessionId = String(paymentSessionId || "").trim();
+
+    if (!cleanSessionId) {
+      console.error("Payment session ID is empty");
+      return;
+    }
+
+    // Use the checkout/post/submit endpoint format
+    const checkoutUrl = `${baseUrl}/checkout/post/submit?payment_session_id=${encodeURIComponent(
+      cleanSessionId
+    )}`;
+
+    console.log("Redirecting to Cashfree:", checkoutUrl);
+    window.location.href = checkoutUrl;
+  };
+
   const handlePurchase = async (packageId: string) => {
     setProcessing(true);
     setMessage("");
@@ -118,39 +143,44 @@ export default function AccountPage() {
         mode: cashfreeMode,
       });
 
-      // Try to use checkout method
+      // Try to use checkout method - it returns a promise
       try {
-        const checkout = cashfree.checkout({
+        const checkoutPromise = cashfree.checkout({
           paymentSessionId: sessionData.paymentSessionId,
           redirectTarget: "_self",
         });
 
-        // Check if redirect is a function
-        if (typeof checkout.redirect === "function") {
-          checkout.redirect();
-        } else if (typeof checkout === "function") {
-          // If checkout itself is a function, call it
-          checkout();
+        // Check if it's a promise
+        if (checkoutPromise && typeof checkoutPromise.then === "function") {
+          // It's a promise, handle it
+          checkoutPromise
+            .then((result: any) => {
+              if (result && result.error) {
+                console.error("Checkout error:", result.error);
+                // Fallback to manual redirect
+                redirectToCashfree(sessionData.paymentSessionId, cashfreeMode);
+              }
+              // If no error, the redirect should have happened automatically
+            })
+            .catch((error: any) => {
+              console.error("Checkout promise error:", error);
+              // Fallback to manual redirect
+              redirectToCashfree(sessionData.paymentSessionId, cashfreeMode);
+            });
+        } else if (
+          checkoutPromise &&
+          typeof checkoutPromise.redirect === "function"
+        ) {
+          // It has a redirect method
+          checkoutPromise.redirect();
         } else {
-          // Fallback: redirect manually using correct Cashfree checkout URL
-          const baseUrl =
-            cashfreeMode === "production"
-              ? "https://www.cashfree.com"
-              : "https://sandbox.cashfree.com";
-          window.location.href = `${baseUrl}/pg/checkout?payment_session_id=${encodeURIComponent(
-            sessionData.paymentSessionId
-          )}`;
+          // Fallback to manual redirect
+          redirectToCashfree(sessionData.paymentSessionId, cashfreeMode);
         }
       } catch (checkoutError: any) {
         console.error("Error initializing checkout:", checkoutError);
-        // Fallback: redirect manually using correct Cashfree checkout URL
-        const baseUrl =
-          cashfreeMode === "production"
-            ? "https://www.cashfree.com"
-            : "https://sandbox.cashfree.com";
-        window.location.href = `${baseUrl}/pg/checkout?payment_session_id=${encodeURIComponent(
-          sessionData.paymentSessionId
-        )}`;
+        // Fallback to manual redirect
+        redirectToCashfree(sessionData.paymentSessionId, cashfreeMode);
       }
     } catch (error: any) {
       setMessage(error.message || "Failed to initiate payment");
