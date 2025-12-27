@@ -40,6 +40,37 @@ body {
   outline: none !important;
 }
 
+/* Prevent CodeMirror from expanding container */
+.cm-editor {
+  max-width: 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.cm-scroller {
+  max-width: 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+}
+
+.cm-content {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Prevent Resizable components from expanding */
+.re-resizable {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.re-resizable > div {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
 /* Loader animation */
 .loader {
   width: fit-content;

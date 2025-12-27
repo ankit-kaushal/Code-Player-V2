@@ -419,7 +419,7 @@ ${js || "// No JavaScript"}
         <div
           ref={containerRef}
           className="flex-1 flex gap-2 p-2 min-h-0"
-          style={{ position: "relative" }}
+          style={{ position: "relative", minWidth: 0, overflow: "hidden" }}
         >
           {/* HTML Editor */}
           {!htmlCollapsed && (
@@ -454,8 +454,12 @@ ${js || "// No JavaScript"}
                 }
               }}
               className="min-h-0"
+              style={{ minWidth: 0, maxWidth: "100%", overflow: "hidden" }}
             >
-              <div className="h-full">
+              <div
+                className="h-full"
+                style={{ minWidth: 0, maxWidth: "100%", overflow: "hidden" }}
+              >
                 <CodeEditor
                   language="html"
                   value={html}
@@ -498,8 +502,12 @@ ${js || "// No JavaScript"}
                 }
               }}
               className="min-h-0"
+              style={{ minWidth: 0, maxWidth: "100%", overflow: "hidden" }}
             >
-              <div className="h-full">
+              <div
+                className="h-full"
+                style={{ minWidth: 0, maxWidth: "100%", overflow: "hidden" }}
+              >
                 <CodeEditor
                   language="css"
                   value={css}
@@ -542,8 +550,12 @@ ${js || "// No JavaScript"}
                 }
               }}
               className="min-h-0"
+              style={{ minWidth: 0, maxWidth: "100%", overflow: "hidden" }}
             >
-              <div className="h-full">
+              <div
+                className="h-full"
+                style={{ minWidth: 0, maxWidth: "100%", overflow: "hidden" }}
+              >
                 <CodeEditor
                   language="javascript"
                   value={js}

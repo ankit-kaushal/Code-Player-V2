@@ -39,7 +39,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   }, [language]);
 
   return (
-    <div className="flex flex-col h-full border border-gray-300 rounded overflow-hidden">
+    <div
+      className="flex flex-col h-full w-full border border-gray-300 rounded overflow-hidden"
+      style={{ minWidth: 0, maxWidth: "100%" }}
+    >
       <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 text-xs font-bold text-gray-600 flex justify-between items-center flex-shrink-0">
         <span>{language.toUpperCase()}</span>
         {onToggleCollapse && (
@@ -53,7 +56,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         )}
       </div>
       {!isCollapsed && (
-        <div className="flex-1 min-h-0 overflow-hidden bg-white">
+        <div
+          className="flex-1 min-h-0 overflow-y-auto bg-white"
+          style={{ minWidth: 0, maxWidth: "100%", overflowX: "auto" }}
+        >
           <CodeMirror
             value={value}
             height="100%"
