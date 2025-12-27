@@ -1,6 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
+import CodeMirror from "@uiw/react-codemirror";
+import { html } from "@codemirror/lang-html";
+import { css } from "@codemirror/lang-css";
+import { javascript } from "@codemirror/lang-javascript";
 
 interface CodeEditorProps {
   language: string;
@@ -19,9 +23,24 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   isCollapsed = false,
   onToggleCollapse,
 }) => {
+  // Configure language extensions based on the language prop
+  const extensions = useMemo(() => {
+    switch (language.toLowerCase()) {
+      case "html":
+        return [html()];
+      case "css":
+        return [css()];
+      case "javascript":
+      case "js":
+        return [javascript()];
+      default:
+        return [];
+    }
+  }, [language]);
+
   return (
     <div className="flex flex-col h-full border border-gray-300 rounded overflow-hidden">
-      <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 text-xs font-bold text-gray-600 flex justify-between items-center">
+      <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 text-xs font-bold text-gray-600 flex justify-between items-center flex-shrink-0">
         <span>{language.toUpperCase()}</span>
         {onToggleCollapse && (
           <button
@@ -34,18 +53,27 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         )}
       </div>
       {!isCollapsed && (
-        <textarea
-          className="flex-1 w-full p-4 border-none outline-none font-mono text-sm resize-none bg-white text-gray-800"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          readOnly={readOnly}
-          placeholder={`Enter your ${language} code here...`}
-          spellCheck={false}
-          style={{
-            backgroundColor: readOnly ? "#f9f9f9" : "#fff",
-            cursor: readOnly ? "not-allowed" : "text",
-          }}
-        />
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <CodeMirror
+            value={value}
+            height="100%"
+            extensions={extensions}
+            onChange={onChange}
+            editable={!readOnly}
+            basicSetup={{
+              lineNumbers: true,
+              foldGutter: true,
+              dropCursor: false,
+              allowMultipleSelections: false,
+              indentOnInput: true,
+              bracketMatching: true,
+              closeBrackets: true,
+              autocompletion: true,
+              highlightSelectionMatches: true,
+            }}
+            placeholder={`Enter your ${language} code here...`}
+          />
+        </div>
       )}
     </div>
   );
