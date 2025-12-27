@@ -19,13 +19,17 @@ const EMAIL_PACKAGES = [
 ];
 
 export default function AccountPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, checkAuth } = useAuth();
   const router = useRouter();
   const [credits, setCredits] = useState(0);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState("");
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileMessage, setProfileMessage] = useState("");
 
   useEffect(() => {
     if (authLoading) {
@@ -38,7 +42,63 @@ export default function AccountPage() {
     }
     loadCredits();
     loadCashfreeScript();
+    loadProfile();
   }, [user, authLoading, router]);
+
+  const loadProfile = async () => {
+    if (!user) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setName(data.name || "");
+        setPhone(data.phone || "");
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileLoading(true);
+    setProfileMessage("");
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/user/update-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name, phone }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setProfileMessage("Profile updated successfully!");
+        // Clear dismissed warning timestamp so banner can show again if needed
+        localStorage.removeItem("profile_warning_dismissed");
+        // Refresh user data
+        await checkAuth();
+      } else {
+        setProfileMessage(data.error || "Failed to update profile");
+      }
+    } catch (error: any) {
+      setProfileMessage("Error updating profile: " + error.message);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const loadCashfreeScript = () => {
     if (document.getElementById("cashfree-script")) return;
@@ -331,6 +391,72 @@ export default function AccountPage() {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Profile Information Section */}
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">
+              Profile Information
+            </h2>
+            <form onSubmit={handleUpdateProfile} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  disabled={profileLoading}
+                  className="w-full p-3 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
+                  placeholder="Enter your full name"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  value={phone}
+                  onChange={(e) =>
+                    setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+                  }
+                  required
+                  maxLength={10}
+                  disabled={profileLoading}
+                  className="w-full p-3 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
+                  placeholder="Enter 10-digit phone number"
+                />
+              </div>
+              {profileMessage && (
+                <div
+                  className={`p-3 rounded-lg text-sm ${
+                    profileMessage.includes("successfully")
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {profileMessage}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={profileLoading}
+                className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+              >
+                {profileLoading ? "Updating..." : "Update Profile"}
+              </button>
+            </form>
           </div>
 
           {message && (

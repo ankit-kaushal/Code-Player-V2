@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import { Work_Sans } from "next/font/google";
 import { AuthProvider } from "./context/AuthContext";
+import LayoutWrapper from "./components/LayoutWrapper";
 import "./globals.css";
+
+const workSans = Work_Sans({
+  subsets: ["latin"],
+  variable: "--font-work-sans",
+});
 
 const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://codeplayer.app";
 
@@ -113,7 +120,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className={workSans.variable}>
       <head>
         <script
           type="application/ld+json"
@@ -122,8 +129,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>
-        <AuthProvider>{children}</AuthProvider>
+      <body className={workSans.className}>
+        <AuthProvider>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </AuthProvider>
       </body>
     </html>
   );
