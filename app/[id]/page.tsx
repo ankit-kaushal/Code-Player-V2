@@ -574,7 +574,7 @@ ${js || "// No JavaScript"}
             className="hidden md:flex min-h-0 flex-col h-full"
             style={{ width: `${previewWidth}%` }}
           >
-            <div className="flex border-b border-gray-300 bg-gray-100 flex-shrink-0">
+            <div className="flex border-gray-300 bg-gray-100 flex-shrink-0">
               <button
                 onClick={() => setActiveTab("preview")}
                 className={`px-4 py-2 text-sm font-medium ${

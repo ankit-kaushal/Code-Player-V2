@@ -363,7 +363,9 @@ ${js || "// No JavaScript"}
 
   return (
     <main className="h-screen flex flex-col overflow-hidden bg-gray-100">
-      <h1 className="sr-only">Code Player - Online HTML, CSS & JavaScript Editor</h1>
+      <h1 className="sr-only">
+        Code Player - Online HTML, CSS & JavaScript Editor
+      </h1>
       <Header
         showEmailButton={true}
         showShareButton={!shareId}
@@ -504,7 +506,7 @@ ${js || "// No JavaScript"}
             className="w-full border border-gray-300 rounded flex flex-col flex-1 min-h-0"
             style={{ height: 0 }}
           >
-            <div className="flex border-b border-gray-300 bg-gray-100 flex-shrink-0">
+            <div className="flex border-gray-300 bg-gray-100 flex-shrink-0">
               <button
                 onClick={() => setActiveTab("preview")}
                 className={`px-4 py-2 text-sm font-medium ${
@@ -707,7 +709,7 @@ ${js || "// No JavaScript"}
             className="hidden md:flex min-h-0 flex-col h-full"
             style={{ width: `${previewWidth}%` }}
           >
-            <div className="flex border-b border-gray-300 bg-gray-100 flex-shrink-0">
+            <div className="flex border-gray-300 bg-gray-100 flex-shrink-0">
               <button
                 onClick={() => setActiveTab("preview")}
                 className={`px-4 py-2 text-sm font-medium ${

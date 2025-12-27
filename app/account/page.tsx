@@ -191,6 +191,15 @@ export default function AccountPage() {
   const checkPaymentStatus = async (orderId: string, packageId: string) => {
     try {
       const token = localStorage.getItem("token");
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentId =
+        urlParams.get("paymentId") ||
+        urlParams.get("cf_payment_id") ||
+        urlParams.get("payment_id") ||
+        "";
+      const signature = urlParams.get("signature") || "";
+      const orderToken = urlParams.get("order_token") || "";
+
       const verifyResponse = await fetch("/api/payment/verify", {
         method: "POST",
         headers: {
@@ -199,10 +208,10 @@ export default function AccountPage() {
         },
         body: JSON.stringify({
           orderId,
+          paymentId,
+          signature,
+          orderToken,
           packageId,
-          orderToken:
-            new URLSearchParams(window.location.search).get("order_token") ||
-            "",
         }),
       });
 
@@ -232,7 +241,11 @@ export default function AccountPage() {
     try {
       const token = localStorage.getItem("token");
       const urlParams = new URLSearchParams(window.location.search);
-      const paymentId = urlParams.get("paymentId") || "";
+      const paymentId =
+        urlParams.get("paymentId") ||
+        urlParams.get("cf_payment_id") ||
+        urlParams.get("payment_id") ||
+        "";
       const signature = urlParams.get("signature") || "";
       const orderToken = urlParams.get("order_token") || "";
 

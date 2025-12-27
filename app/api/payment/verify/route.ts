@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { verifyToken } from '@/lib/auth';
 import { getCollection, COLLECTIONS } from '@/lib/database';
 import { ObjectId } from 'mongodb';
@@ -25,15 +24,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing order details' }, { status: 400 });
     }
 
-    let verifiedPaymentId = paymentId || 'N/A';
-
-    // Always verify payment status with Cashfree API first
+    // Verify payment status with Cashfree API
     const cashfreeBaseUrl = process.env.NEXT_PUBLIC_CASHFREE_MODE === 'production'
       ? 'https://api.cashfree.com'
       : 'https://sandbox.cashfree.com';
 
-    try {
-      const cashfreeResponse = await fetch(`${cashfreeBaseUrl}/pg/orders/${orderId}`, {
+    const cashfreeResponse = await fetch(`${cashfreeBaseUrl}/pg/orders/${orderId}`, {
+      method: 'GET',
+      headers: {
+        'x-api-version': '2023-08-01',
+        'x-client-id': process.env.CASHFREE_APP_ID || '',
+        'x-client-secret': process.env.CASHFREE_SECRET_KEY || '',
+      },
+    });
+
+    if (!cashfreeResponse.ok) {
+      return NextResponse.json({ error: 'Failed to fetch order status from Cashfree' }, { status: 400 });
+    }
+
+    const orderData = await cashfreeResponse.json();
+
+    if (orderData.order_status !== 'PAID') {
+      return NextResponse.json({ 
+        error: 'Payment not completed',
+        orderStatus: orderData.order_status 
+      }, { status: 400 });
+    }
+
+    // Extract payment ID from order data
+    let verifiedPaymentId = 
+      orderData.payment_details?.cf_payment_id ||
+      orderData.payment_details?.payment_id ||
+      orderData.payment_details?.[0]?.cf_payment_id ||
+      orderData.payment_details?.[0]?.payment_id ||
+      orderData.payments?.[0]?.cf_payment_id ||
+      orderData.payments?.[0]?.payment_id ||
+      orderData.cf_payment_id ||
+      orderData.payment_id ||
+      paymentId ||
+      'N/A';
+
+    // If payment ID not found in order data, fetch from payments endpoint
+    if (!verifiedPaymentId || verifiedPaymentId === 'N/A') {
+      const paymentsResponse = await fetch(`${cashfreeBaseUrl}/pg/orders/${orderId}/payments`, {
         method: 'GET',
         headers: {
           'x-api-version': '2023-08-01',
@@ -42,40 +75,13 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      if (!cashfreeResponse.ok) {
-        return NextResponse.json({ error: 'Failed to fetch order status from Cashfree' }, { status: 400 });
-      }
-
-      const orderData = await cashfreeResponse.json();
-
-      // Only proceed if payment is actually PAID
-      if (orderData.order_status !== 'PAID') {
-        return NextResponse.json({ 
-          error: 'Payment not completed',
-          orderStatus: orderData.order_status 
-        }, { status: 400 });
-      }
-
-      // Payment is verified, get payment ID
-      verifiedPaymentId = orderData.payment_details?.cf_payment_id || paymentId || 'N/A';
-    } catch (error) {
-      console.error('Error verifying with Cashfree:', error);
-      // If API call fails and we have signature, verify signature as fallback
-      if (signature && paymentId) {
-        const dataToVerify = `${orderId}${paymentId}`;
-        const secretKey = process.env.CASHFREE_SECRET_KEY || '';
-        const generatedSignature = crypto
-          .createHmac('sha256', secretKey)
-          .update(dataToVerify)
-          .digest('hex');
-
-        if (generatedSignature !== signature) {
-          return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+      if (paymentsResponse.ok) {
+        const paymentsData = await paymentsResponse.json();
+        if (Array.isArray(paymentsData) && paymentsData.length > 0) {
+          verifiedPaymentId = paymentsData[0].cf_payment_id || paymentsData[0].payment_id || verifiedPaymentId;
+        } else if (paymentsData.payments && Array.isArray(paymentsData.payments) && paymentsData.payments.length > 0) {
+          verifiedPaymentId = paymentsData.payments[0].cf_payment_id || paymentsData.payments[0].payment_id || verifiedPaymentId;
         }
-        verifiedPaymentId = paymentId;
-      } else {
-        // No way to verify payment, reject it
-        return NextResponse.json({ error: 'Failed to verify payment status' }, { status: 500 });
       }
     }
 
