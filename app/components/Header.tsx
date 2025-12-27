@@ -36,18 +36,21 @@ export default function Header({
   saveLoading = false,
 }: HeaderProps) {
   const router = useRouter();
-  const { user, logout } = useAuth();
-  const [userCredits, setUserCredits] = useState<number>(0);
+  const { user, loading: authLoading, logout } = useAuth();
+  const [userCredits, setUserCredits] = useState<number | null>(null);
+  const [creditsLoading, setCreditsLoading] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCredits = async () => {
       if (!user) {
-        setUserCredits(0);
+        setUserCredits(null);
+        setCreditsLoading(false);
         return;
       }
 
+      setCreditsLoading(true);
       try {
         const token = localStorage.getItem("token");
         const response = await fetch("/api/user/credits", {
@@ -62,11 +65,15 @@ export default function Header({
         }
       } catch (error) {
         console.error("Error fetching credits:", error);
+      } finally {
+        setCreditsLoading(false);
       }
     };
 
-    fetchCredits();
-  }, [user]);
+    if (!authLoading) {
+      fetchCredits();
+    }
+  }, [user, authLoading]);
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -89,8 +96,15 @@ export default function Header({
   }, [showUserMenu]);
 
   return (
-    <header role="banner" className="bg-gray-800 text-white p-2 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 shadow-md z-10">
-      <Link href="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer" aria-label="Code Player Home">
+    <header
+      role="banner"
+      className="bg-gray-800 text-white p-2 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 shadow-md z-10"
+    >
+      <Link
+        href="/"
+        className="flex items-center gap-2 sm:gap-3 cursor-pointer"
+        aria-label="Code Player Home"
+      >
         <Image
           src="/logo.png"
           alt="Code Player - Online HTML, CSS & JavaScript Editor"
@@ -101,14 +115,16 @@ export default function Header({
         />
       </Link>
       <div className="flex gap-1 sm:gap-2 items-center flex-wrap justify-center sm:justify-end w-full sm:w-auto">
-        {user ? (
+        {!authLoading && user ? (
           <>
             {showEmailButton && (
               <button
                 onClick={onEmailClick}
                 className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-xs sm:text-sm font-medium"
               >
-                <span className="hidden sm:inline">📧 Creating this for email</span>
+                <span className="hidden sm:inline">
+                  📧 Creating this for email
+                </span>
                 <span className="sm:hidden">📧 Email</span>
               </button>
             )}
@@ -163,11 +179,17 @@ export default function Header({
                       <span className="text-sm text-gray-700">
                         Total Tokens:
                       </span>
-                      <span className="text-sm font-semibold text-gray-900">
-                        {userCredits}
-                      </span>
+                      {creditsLoading ? (
+                        <span className="text-sm text-gray-500">
+                          Loading...
+                        </span>
+                      ) : (
+                        <span className="text-sm font-semibold text-gray-900">
+                          {userCredits ?? 0}
+                        </span>
+                      )}
                     </div>
-                    {userCredits === 0 && (
+                    {!creditsLoading && userCredits === 0 && (
                       <button
                         onClick={() => {
                           setShowUserMenu(false);
@@ -201,14 +223,14 @@ export default function Header({
               )}
             </div>
           </>
-        ) : (
+        ) : !authLoading ? (
           <button
             onClick={onLoginClick || (() => router.push("/"))}
             className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm font-medium"
           >
             Login
           </button>
-        )}
+        ) : null}
       </div>
     </header>
   );
