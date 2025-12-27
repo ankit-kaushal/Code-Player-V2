@@ -180,9 +180,10 @@ export default function Header({
                         Total Tokens:
                       </span>
                       {creditsLoading ? (
-                        <span className="text-sm text-gray-500">
-                          Loading...
-                        </span>
+                        <div
+                          className="loader text-sm"
+                          style={{ fontSize: "14px" }}
+                        ></div>
                       ) : (
                         <span className="text-sm font-semibold text-gray-900">
                           {userCredits ?? 0}

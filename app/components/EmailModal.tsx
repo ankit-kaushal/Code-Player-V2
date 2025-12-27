@@ -92,12 +92,12 @@ const EmailModal: React.FC<EmailModalProps> = ({
         throw new Error(data.error || "Failed to send email");
       }
 
+      const remainingCredits =
+        data.remainingCredits ?? (credits !== null ? credits - 1 : 0);
       setMessage(
-        `Test email sent successfully! Remaining credits: ${
-          data.remainingCredits || credits - 1
-        }`
+        `Test email sent successfully! Remaining credits: ${remainingCredits}`
       );
-      setCredits(data.remainingCredits || credits - 1);
+      setCredits(remainingCredits);
       setEmail("");
       setTimeout(() => {
         onClose();
@@ -140,7 +140,10 @@ const EmailModal: React.FC<EmailModalProps> = ({
         <p className="text-sm text-gray-600 mb-2">
           Email Credits:{" "}
           {creditsLoading ? (
-            <span className="text-gray-400">Loading...</span>
+            <div
+              className="loader inline-block"
+              style={{ fontSize: "14px" }}
+            ></div>
           ) : (
             <span className="font-bold text-blue-600">{credits ?? 0}</span>
           )}

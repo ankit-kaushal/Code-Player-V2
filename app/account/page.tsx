@@ -27,8 +27,6 @@ export default function AccountPage() {
   const [message, setMessage] = useState("");
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
 
-  console.log("user", user);
-
   useEffect(() => {
     if (authLoading) {
       return;
@@ -89,12 +87,9 @@ export default function AccountPage() {
       return;
     }
 
-    // Use the checkout/post/submit endpoint format
     const checkoutUrl = `${baseUrl}/checkout/post/submit?payment_session_id=${encodeURIComponent(
       cleanSessionId
     )}`;
-
-    console.log("Redirecting to Cashfree:", checkoutUrl);
     window.location.href = checkoutUrl;
   };
 
@@ -219,7 +214,9 @@ export default function AccountPage() {
 
       if (verifyResponse.ok && verifyData.success) {
         setMessage(
-          `Payment successful! ${verifyData.credits} credits added to your account.`
+          `Payment successful! ${
+            verifyData.addedCredits || verifyData.credits
+          } credits added to your account.`
         );
         await loadCredits();
       } else {
@@ -268,7 +265,9 @@ export default function AccountPage() {
 
       if (verifyResponse.ok && verifyData.success) {
         setMessage(
-          `Payment successful! ${verifyData.credits} credits added to your account.`
+          `Payment successful! ${
+            verifyData.addedCredits || verifyData.credits
+          } credits added to your account.`
         );
         await loadCredits();
         window.history.replaceState({}, "", "/account");

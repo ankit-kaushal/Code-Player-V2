@@ -123,6 +123,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: 'Payment verified and credits added',
       credits: newCredits,
+      addedCredits: packageData.emails,
     });
   } catch (error: any) {
     console.error('Error verifying payment:', error);

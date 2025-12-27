@@ -84,15 +84,6 @@ export async function POST(req: NextRequest) {
       ? 'https://api.cashfree.com/pg/orders'
       : 'https://sandbox.cashfree.com/pg/orders';
 
-    console.log('Creating Cashfree order:', {
-      mode: cashfreeMode,
-      apiUrl,
-      orderId,
-      orderAmount: packageData.price,
-      hasAppId: !!cashfreeAppId,
-      hasSecretKey: !!cashfreeSecretKey,
-    });
-
     const cashfreeResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -130,9 +121,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log('Cashfree order response:', JSON.stringify(cashfreeData, null, 2));
-
-    // Cashfree returns payment_session_id in the response
     const paymentSessionId = cashfreeData.payment_session_id || cashfreeData.paymentSessionId || cashfreeData.payment_sessionId;
     
     if (!paymentSessionId) {
