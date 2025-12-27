@@ -36,3 +36,6 @@ body {
   background: white !important;
 }
 
+.cm-focused {
+  outline: none !important;
+}
