@@ -53,7 +53,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         )}
       </div>
       {!isCollapsed && (
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden bg-white">
           <CodeMirror
             value={value}
             height="100%"
@@ -61,7 +61,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             onChange={onChange}
             editable={!readOnly}
             basicSetup={{
-              lineNumbers: true,
+              lineNumbers: false,
               foldGutter: true,
               dropCursor: false,
               allowMultipleSelections: false,

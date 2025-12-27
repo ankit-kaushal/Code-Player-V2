@@ -29,3 +29,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* CodeMirror styles */
+.cm-gutters,
+.cm-gutters-before {
+  border: none !important;
+  background: white !important;
+}
+
