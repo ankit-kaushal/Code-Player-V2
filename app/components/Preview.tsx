@@ -20,6 +20,7 @@ interface PreviewProps {
 export interface PreviewHandle {
   runCode: () => void;
   clearLogs: () => void;
+  getIframe: () => HTMLIFrameElement | null;
 }
 
 const Preview = forwardRef<PreviewHandle, PreviewProps>(
@@ -241,6 +242,9 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
           }
           // Increment execution ID to ignore any pending messages
           executionIdRef.current += 1;
+        },
+        getIframe: () => {
+          return iframeRef.current;
         },
       }),
       [runCode, onConsoleLog]

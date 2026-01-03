@@ -15,6 +15,10 @@ interface HeaderProps {
   onShareClick?: () => void;
   onSaveClick?: () => void;
   onDownloadClick?: () => void;
+  onDownloadOneFile?: () => void;
+  onDownloadMultipleFiles?: () => void;
+  onDownloadPreviewAsPDF?: () => void;
+  onDownloadPreviewAsImage?: () => void;
   onLoginClick?: () => void;
   shareDisabled?: boolean;
   shareLoading?: boolean;
@@ -30,6 +34,10 @@ export default function Header({
   onShareClick,
   onSaveClick,
   onDownloadClick,
+  onDownloadOneFile,
+  onDownloadMultipleFiles,
+  onDownloadPreviewAsPDF,
+  onDownloadPreviewAsImage,
   onLoginClick,
   shareDisabled = false,
   shareLoading = false,
@@ -40,7 +48,9 @@ export default function Header({
   const [userCredits, setUserCredits] = useState<number | null>(null);
   const [creditsLoading, setCreditsLoading] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const downloadMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCredits = async () => {
@@ -84,16 +94,22 @@ export default function Header({
       ) {
         setShowUserMenu(false);
       }
+      if (
+        downloadMenuRef.current &&
+        !downloadMenuRef.current.contains(event.target as Node)
+      ) {
+        setShowDownloadMenu(false);
+      }
     };
 
-    if (showUserMenu) {
+    if (showUserMenu || showDownloadMenu) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showUserMenu]);
+  }, [showUserMenu, showDownloadMenu]);
 
   return (
     <header
@@ -151,12 +167,86 @@ export default function Header({
               </button>
             )}
             {showDownloadButton && (
-              <button
-                onClick={onDownloadClick}
-                className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm font-medium"
-              >
-                Download
-              </button>
+              <div className="relative" ref={downloadMenuRef}>
+                <button
+                  onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+                  className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm font-medium flex items-center gap-2"
+                >
+                  <span>Download</span>
+                  <span className="h-3 w-px bg-white/50"></span>
+                  <span className="text-xs">
+                    {showDownloadMenu ? "▲" : "▼"}
+                  </span>
+                </button>
+                {showDownloadMenu && (
+                  <div className="absolute right-0 mt-2 min-w-[220px] bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    {onDownloadOneFile && (
+                      <button
+                        onClick={() => {
+                          setShowDownloadMenu(false);
+                          onDownloadOneFile();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 whitespace-nowrap"
+                      >
+                        <span>📄</span>
+                        <span className="flex-1">Download as one file</span>
+                      </button>
+                    )}
+                    {onDownloadMultipleFiles && (
+                      <button
+                        onClick={() => {
+                          setShowDownloadMenu(false);
+                          onDownloadMultipleFiles();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 whitespace-nowrap"
+                      >
+                        <span>📁</span>
+                        <span className="flex-1">
+                          Download as multiple files
+                        </span>
+                      </button>
+                    )}
+                    {onDownloadPreviewAsPDF && (
+                      <button
+                        onClick={() => {
+                          setShowDownloadMenu(false);
+                          onDownloadPreviewAsPDF();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 whitespace-nowrap"
+                      >
+                        <span>📄</span>
+                        <span className="flex-1">Download preview as PDF</span>
+                      </button>
+                    )}
+                    {onDownloadPreviewAsImage && (
+                      <button
+                        onClick={() => {
+                          setShowDownloadMenu(false);
+                          onDownloadPreviewAsImage();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 whitespace-nowrap"
+                      >
+                        <span>🖼️</span>
+                        <span className="flex-1">
+                          Download preview as image
+                        </span>
+                      </button>
+                    )}
+                    {onDownloadClick && !onDownloadOneFile && (
+                      <button
+                        onClick={() => {
+                          setShowDownloadMenu(false);
+                          onDownloadClick();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <span>📥</span>
+                        <span>Download</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
             {/* User Profile Dropdown */}
             <div className="relative" ref={userMenuRef}>

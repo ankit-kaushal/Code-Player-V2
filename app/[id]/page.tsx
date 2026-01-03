@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Resizable } from "re-resizable";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +10,8 @@ import Console from "../components/Console";
 import LoginModal from "../components/LoginModal";
 import EmailModal from "../components/EmailModal";
 import Header from "../components/Header";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface ConsoleLog {
   type: string;
@@ -234,7 +236,7 @@ export default function SharedCodePage() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownloadOneFile = () => {
     const content = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -262,6 +264,124 @@ ${js || "// No JavaScript"}
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadMultipleFiles = () => {
+    // Download HTML file
+    if (html) {
+      const htmlBlob = new Blob([html], { type: "text/html" });
+      const htmlUrl = URL.createObjectURL(htmlBlob);
+      const htmlLink = document.createElement("a");
+      htmlLink.href = htmlUrl;
+      htmlLink.download = "index.html";
+      document.body.appendChild(htmlLink);
+      htmlLink.click();
+      document.body.removeChild(htmlLink);
+      URL.revokeObjectURL(htmlUrl);
+    }
+
+    // Download CSS file
+    if (css) {
+      setTimeout(() => {
+        const cssBlob = new Blob([css], { type: "text/css" });
+        const cssUrl = URL.createObjectURL(cssBlob);
+        const cssLink = document.createElement("a");
+        cssLink.href = cssUrl;
+        cssLink.download = "styles.css";
+        document.body.appendChild(cssLink);
+        cssLink.click();
+        document.body.removeChild(cssLink);
+        URL.revokeObjectURL(cssUrl);
+      }, 100);
+    }
+
+    // Download JavaScript file
+    if (js) {
+      setTimeout(() => {
+        const jsBlob = new Blob([js], { type: "text/javascript" });
+        const jsUrl = URL.createObjectURL(jsBlob);
+        const jsLink = document.createElement("a");
+        jsLink.href = jsUrl;
+        jsLink.download = "script.js";
+        document.body.appendChild(jsLink);
+        jsLink.click();
+        document.body.removeChild(jsLink);
+        URL.revokeObjectURL(jsUrl);
+      }, 200);
+    }
+  };
+
+  const handleDownloadPreviewAsPDF = async () => {
+    const iframe = previewRef.current?.getIframe();
+    if (!iframe) {
+      alert("Preview not available");
+      return;
+    }
+
+    try {
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc || !iframeDoc.body) {
+        alert("Preview content not available");
+        return;
+      }
+
+      const canvas = await html2canvas(iframeDoc.body, {
+        useCORS: true,
+        scale: 2,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? "landscape" : "portrait",
+        unit: "px",
+        format: [canvas.width, canvas.height],
+      });
+
+      pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+      pdf.save("preview.pdf");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    }
+  };
+
+  const handleDownloadPreviewAsImage = async () => {
+    const iframe = previewRef.current?.getIframe();
+    if (!iframe) {
+      alert("Preview not available");
+      return;
+    }
+
+    try {
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc || !iframeDoc.body) {
+        alert("Preview content not available");
+        return;
+      }
+
+      const canvas = await html2canvas(iframeDoc.body, {
+        useCORS: true,
+        scale: 2,
+        logging: false,
+      });
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "preview.png";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      });
+    } catch (error) {
+      console.error("Error generating image:", error);
+      alert("Failed to generate image. Please try again.");
+    }
   };
 
   const handleEmailClick = () => {
@@ -364,7 +484,10 @@ ${js || "// No JavaScript"}
         showDownloadButton={true}
         onEmailClick={handleEmailClick}
         onSaveClick={handleSave}
-        onDownloadClick={handleDownload}
+        onDownloadOneFile={handleDownloadOneFile}
+        onDownloadMultipleFiles={handleDownloadMultipleFiles}
+        onDownloadPreviewAsPDF={handleDownloadPreviewAsPDF}
+        onDownloadPreviewAsImage={handleDownloadPreviewAsImage}
         onLoginClick={() => setIsLoginModalOpen(true)}
         shareDisabled={!canEdit}
         saveLoading={saving}
