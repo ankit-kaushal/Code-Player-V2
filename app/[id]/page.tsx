@@ -267,9 +267,78 @@ ${js || "// No JavaScript"}
   };
 
   const handleDownloadMultipleFiles = () => {
+    // Build HTML with links to CSS and JS files
+    let htmlContent = html || "";
+    
+    // Check if HTML already has a proper structure
+    const hasHtmlTag = /<html[\s>]/i.test(htmlContent);
+    const hasHeadTag = /<head[\s>]/i.test(htmlContent);
+    const hasBodyTag = /<body[\s>]/i.test(htmlContent);
+    
+    if (!hasHtmlTag) {
+      // Create a complete HTML structure
+      let headContent = "";
+      let bodyContent = htmlContent;
+      
+      // Add CSS link if CSS exists
+      if (css) {
+        headContent += '    <link rel="stylesheet" href="styles.css">\n';
+      }
+      
+      // Add meta tags
+      headContent = `    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Code Player Export</title>\n${headContent}`;
+      
+      // Add JS script before closing body if JS exists
+      if (js) {
+        bodyContent += '\n    <script src="script.js"></script>';
+      }
+      
+      htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+${headContent}</head>
+<body>
+${bodyContent}
+</body>
+</html>`;
+    } else {
+      // HTML has structure, inject links appropriately
+      if (css && !/<link[^>]*styles\.css/i.test(htmlContent)) {
+        // Add CSS link in head
+        if (hasHeadTag) {
+          htmlContent = htmlContent.replace(
+            /(<head[^>]*>)/i,
+            `$1\n    <link rel="stylesheet" href="styles.css">`
+          );
+        } else if (hasHtmlTag) {
+          // Add head if it doesn't exist
+          htmlContent = htmlContent.replace(
+            /(<html[^>]*>)/i,
+            `$1\n<head>\n    <link rel="stylesheet" href="styles.css">\n</head>`
+          );
+        }
+      }
+      
+      if (js && !/<script[^>]*script\.js/i.test(htmlContent)) {
+        // Add JS script before closing body
+        if (hasBodyTag) {
+          htmlContent = htmlContent.replace(
+            /(<\/body>)/i,
+            `    <script src="script.js"></script>\n$1`
+          );
+        } else {
+          // Add body if it doesn't exist
+          htmlContent = htmlContent.replace(
+            /(<\/html>)/i,
+            `<body>\n    <script src="script.js"></script>\n</body>\n$1`
+          );
+        }
+      }
+    }
+    
     // Download HTML file
-    if (html) {
-      const htmlBlob = new Blob([html], { type: "text/html" });
+    if (htmlContent) {
+      const htmlBlob = new Blob([htmlContent], { type: "text/html" });
       const htmlUrl = URL.createObjectURL(htmlBlob);
       const htmlLink = document.createElement("a");
       htmlLink.href = htmlUrl;
