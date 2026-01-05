@@ -104,6 +104,27 @@ export default function Home() {
     checkPermissions();
   }, [shareId, user, checkCanEdit]);
 
+  // Warn user before leaving if there's unsaved content
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Check if there's any content in the editors
+      const hasContent = html.trim() || css.trim() || js.trim();
+      
+      if (hasContent) {
+        // Modern browsers ignore custom messages, but we still need to set returnValue
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [html, css, js]);
+
   // Resizing is now handled by re-resizable library
 
   const loadSharedCode = async (id: string) => {
