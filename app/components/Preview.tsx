@@ -42,25 +42,12 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
           // Update capture flag
           captureConsoleRef.current = captureLogs;
 
-          // Wait for iframe to be ready
-          const executeCode = () => {
-            try {
-              const doc =
-                iframe.contentDocument || iframe.contentWindow?.document;
-              if (!doc) {
-                // Retry after a short delay if document isn't ready
-                setTimeout(executeCode, 50);
-                return;
-              }
+          // When capturing, logs are already cleared in the ref's runCode function
+          // Just use the current execution ID
+          const currentExecutionId = captureLogs ? executionIdRef.current : 0;
 
-              // When capturing, logs are already cleared in the ref's runCode function
-              // Just use the current execution ID
-              const currentExecutionId = captureLogs
-                ? executionIdRef.current
-                : 0;
-
-              doc.open();
-              doc.write(`
+          // Build full HTML and assign via srcdoc so each run gets a fresh JS context
+          const htmlContent = `
             <!DOCTYPE html>
             <html>
               <head>
@@ -114,6 +101,15 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
                       originalInfo.apply(console, args);
                       sendLog('info', ...args);
                     };
+                    
+                    // Capture uncaught runtime errors (e.g. ReferenceError: arr is not defined)
+                    window.onerror = function(message, source, lineno, colno, error) {
+                      const details = error && error.stack
+                        ? error.stack
+                        : (message || 'Unknown error');
+                      sendLog('error', details);
+                      return false;
+                    };
                   })();
                 </script>
               </head>
@@ -122,19 +118,17 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
                 <script>${js || ""}</script>
               </body>
             </html>
-          `);
-              doc.close();
-            } catch (error) {
-              console.error("Error executing code in preview:", error);
-              // Retry after a short delay
-              setTimeout(executeCode, 100);
-            }
-          };
+          `;
 
-          executeCode();
+          try {
+            // Using srcdoc creates a new document and JS context each run
+            iframe.srcdoc = htmlContent;
+          } catch (error) {
+            console.error("Error executing code in preview:", error);
+          }
         }
       },
-      [html, css, js, onConsoleLog]
+      [html, css, js]
     );
 
     // Set up message listener once on mount (only captures when captureConsoleRef is true)
