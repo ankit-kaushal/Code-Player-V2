@@ -10,9 +10,12 @@ const playcodeEditorTheme = EditorView.theme(
       color: "#d4d4d4",
       backgroundColor: "#181818",
       height: "100%",
+      fontSize: "14px",
     },
     ".cm-content": {
       caretColor: "#ffffff",
+      fontSize: "14px",
+      fontFamily: "Menlo, Monaco, 'Courier New', monospace",
     },
     "&.cm-focused .cm-cursor": {
       borderLeftColor: "#ffffff",
@@ -85,8 +88,9 @@ const playcodeEditorTheme = EditorView.theme(
     },
     ".cm-scroller": {
       overflow: "auto",
-      fontFamily:
-        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      fontSize: "14px",
+      lineHeight: "1.4",
+      fontFamily: "Menlo, Monaco, 'Courier New', monospace",
     },
   },
   { dark: true }

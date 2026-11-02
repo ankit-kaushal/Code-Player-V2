@@ -91,11 +91,14 @@ body {
   width: 100% !important;
   min-width: 0 !important;
   overflow: auto !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
 }
 
 .cm-content {
   max-width: 100% !important;
   min-width: 0 !important;
+  font-size: 14px !important;
 }
 
 .cm-editor.cm-light {
