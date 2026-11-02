@@ -1,6 +1,6 @@
 "use client";
 
-import React, { RefObject, useCallback, useRef } from "react";
+import React, { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import Preview, { PreviewHandle } from "./Preview";
 import Console from "./Console";
 import { LayoutMode } from "@/lib/layout-prefs";
@@ -47,6 +47,12 @@ export default function PreviewConsolePanel({
   style,
 }: PreviewConsolePanelProps) {
   const panelBodyRef = useRef<HTMLDivElement>(null);
+  const splitPreviewPercentRef = useRef(splitPreviewPercent);
+  const [isDraggingSplit, setIsDraggingSplit] = useState(false);
+
+  useEffect(() => {
+    splitPreviewPercentRef.current = splitPreviewPercent;
+  }, [splitPreviewPercent]);
 
   const tabClass = (mode: LayoutMode) =>
     `px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium whitespace-nowrap ${
@@ -58,17 +64,28 @@ export default function PreviewConsolePanel({
   const startSplitDrag = useCallback(
     (event: React.MouseEvent) => {
       event.preventDefault();
+      event.stopPropagation();
       const panel = panelBodyRef.current;
       if (!panel) return;
+
+      setIsDraggingSplit(true);
+      document.body.style.cursor = "row-resize";
+      document.body.style.userSelect = "none";
 
       const onMove = (e: MouseEvent) => {
         const rect = panel.getBoundingClientRect();
         if (rect.height <= 0) return;
         const next = ((e.clientY - rect.top) / rect.height) * 100;
-        onSplitPreviewPercentChange(Math.max(25, Math.min(75, next)));
+        // Preview 20–80% so console can grow/shrink freely either direction
+        const clamped = Math.max(20, Math.min(80, next));
+        if (Math.abs(clamped - splitPreviewPercentRef.current) < 0.2) return;
+        onSplitPreviewPercentChange(clamped);
       };
 
       const onUp = () => {
+        setIsDraggingSplit(false);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
         window.removeEventListener("mousemove", onMove);
         window.removeEventListener("mouseup", onUp);
       };
@@ -116,8 +133,12 @@ export default function PreviewConsolePanel({
         {layoutMode === "split" ? (
           <div className="absolute inset-0 flex flex-col min-h-0">
             <div
-              className="min-h-0 overflow-hidden"
-              style={{ flex: `0 0 ${splitPreviewPercent}%` }}
+              className="min-h-0 overflow-hidden relative"
+              style={{
+                flex: `0 0 ${splitPreviewPercent}%`,
+                // Prevent iframe from swallowing drag events when resizing
+                pointerEvents: isDraggingSplit ? "none" : "auto",
+              }}
             >
               <Preview
                 ref={previewRef}
@@ -134,9 +155,16 @@ export default function PreviewConsolePanel({
               aria-orientation="horizontal"
               aria-label="Resize preview and console"
               onMouseDown={startSplitDrag}
-              className="h-1.5 flex-shrink-0 cursor-row-resize bg-gray-300 dark:bg-[#3a3a3a] hover:bg-blue-500 dark:hover:bg-[#aed8aa] transition-colors"
+              className={`h-2 flex-shrink-0 cursor-row-resize bg-gray-300 dark:bg-[#3a3a3a] hover:bg-blue-500 dark:hover:bg-[#aed8aa] transition-colors z-20 ${
+                isDraggingSplit ? "bg-blue-500 dark:bg-[#aed8aa]" : ""
+              }`}
             />
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div
+              className="flex-1 min-h-0 overflow-hidden"
+              style={{
+                pointerEvents: isDraggingSplit ? "none" : "auto",
+              }}
+            >
               <Console
                 logs={consoleLogs}
                 onRun={onRun}
@@ -144,6 +172,9 @@ export default function PreviewConsolePanel({
                 compact
               />
             </div>
+            {isDraggingSplit && (
+              <div className="absolute inset-0 z-10 cursor-row-resize" />
+            )}
           </div>
         ) : (
           <>
