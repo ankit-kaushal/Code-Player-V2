@@ -16,6 +16,7 @@ interface PreviewProps {
   shouldRun?: boolean;
   captureConsole?: boolean;
   compact?: boolean;
+  autoRun?: boolean;
 }
 
 export interface PreviewHandle {
@@ -34,6 +35,7 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
       shouldRun = false,
       captureConsole = false,
       compact = false,
+      autoRun = true,
     },
     ref
   ) => {
@@ -185,13 +187,13 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
     // Track if we're manually running to prevent auto-run interference
     const isManualRunRef = useRef<boolean>(false);
 
-    // Run code automatically when html, css, or js changes (without capturing console)
+    // Preview always auto-updates; console capture only when autoRun is on
     useEffect(() => {
-      // Skip auto-run if we're in the middle of a manual run
+      // Skip if we're in the middle of a manual run
       if (iframeRef.current && !isManualRunRef.current) {
-        runCode(false);
+        runCode(Boolean(autoRun));
       }
-    }, [html, css, js, runCode]);
+    }, [html, css, js, runCode, autoRun]);
 
     // Run with console capture when shouldRun is explicitly set to true (for manual run button)
     // This is a fallback - prefer using the ref directly

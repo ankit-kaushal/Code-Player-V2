@@ -25,6 +25,8 @@ interface PreviewConsolePanelProps {
   onConsoleLog: (logs: any[]) => void;
   onRun: () => void;
   onClear: () => void;
+  autoRun?: boolean;
+  onAutoRunChange?: (autoRun: boolean) => void;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -43,6 +45,8 @@ export default function PreviewConsolePanel({
   onConsoleLog,
   onRun,
   onClear,
+  autoRun = false,
+  onAutoRunChange,
   className = "",
   style,
 }: PreviewConsolePanelProps) {
@@ -101,7 +105,7 @@ export default function PreviewConsolePanel({
       className={`border border-gray-300 dark:border-[#2b2b2b] rounded flex flex-col min-h-0 overflow-hidden dark:bg-[#181818] ${className}`}
       style={style}
     >
-      <div className="flex border-b border-gray-300 dark:border-[#2b2b2b] bg-gray-100 dark:bg-[#2b2b2b] flex-shrink-0">
+      <div className="flex items-center border-b border-gray-300 dark:border-[#2b2b2b] bg-gray-100 dark:bg-[#2b2b2b] flex-shrink-0">
         <button
           type="button"
           onClick={() => onLayoutModeChange("preview")}
@@ -124,6 +128,20 @@ export default function PreviewConsolePanel({
         >
           Both
         </button>
+        {onAutoRunChange && (
+          <label
+            className="ml-auto mr-2 sm:mr-3 flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-600 dark:text-[#8a8a8a] cursor-pointer select-none whitespace-nowrap"
+            title="Automatically capture console output as you type"
+          >
+            <input
+              type="checkbox"
+              checked={autoRun}
+              onChange={(e) => onAutoRunChange(e.target.checked)}
+              className="rounded border-gray-300 dark:border-[#3a3a3a] dark:bg-[#1f1f1f]"
+            />
+            Auto run console
+          </label>
+        )}
       </div>
 
       <div
@@ -148,6 +166,7 @@ export default function PreviewConsolePanel({
                 onConsoleLog={onConsoleLog}
                 shouldRun={shouldRunCode}
                 compact
+                autoRun={autoRun}
               />
             </div>
             <div
@@ -190,6 +209,7 @@ export default function PreviewConsolePanel({
                 js={js}
                 onConsoleLog={onConsoleLog}
                 shouldRun={shouldRunCode}
+                autoRun={autoRun}
               />
             </div>
             <div

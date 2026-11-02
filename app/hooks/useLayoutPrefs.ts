@@ -16,6 +16,7 @@ export function useLayoutPrefs() {
   const [htmlCollapsed, setHtmlCollapsed] = useState(false);
   const [cssCollapsed, setCssCollapsed] = useState(false);
   const [jsCollapsed, setJsCollapsed] = useState(false);
+  const [autoRun, setAutoRun] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const skipEqualResetRef = useRef(true);
 
@@ -29,6 +30,7 @@ export function useLayoutPrefs() {
     setHtmlCollapsed(prefs.htmlCollapsed);
     setCssCollapsed(prefs.cssCollapsed);
     setJsCollapsed(prefs.jsCollapsed);
+    setAutoRun(prefs.autoRun);
     setHydrated(true);
     // Allow one paint after hydrate before equal-width reset on collapse
     requestAnimationFrame(() => {
@@ -47,6 +49,7 @@ export function useLayoutPrefs() {
       htmlCollapsed,
       cssCollapsed,
       jsCollapsed,
+      autoRun,
     });
   }, [
     hydrated,
@@ -58,6 +61,7 @@ export function useLayoutPrefs() {
     htmlCollapsed,
     cssCollapsed,
     jsCollapsed,
+    autoRun,
   ]);
 
   return {
@@ -77,6 +81,8 @@ export function useLayoutPrefs() {
     setCssCollapsed,
     jsCollapsed,
     setJsCollapsed,
+    autoRun,
+    setAutoRun,
     hydrated,
     skipEqualResetRef,
   };

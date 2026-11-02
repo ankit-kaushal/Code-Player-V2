@@ -367,26 +367,30 @@ export default function AccountPage() {
 
   if (authLoading || loading) {
     return (
-      <main className="min-h-screen bg-gray-100 flex flex-col">
+      <main className="min-h-screen bg-gray-100 dark:bg-[#181818] flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-xl">Loading...</div>
+          <div className="text-xl text-gray-900 dark:text-[#d4d4d4]">
+            Loading...
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 flex flex-col">
+    <main className="min-h-screen bg-gray-100 dark:bg-[#181818] flex flex-col text-gray-900 dark:text-[#d4d4d4]">
       <Header />
       <div className="flex-1 py-4 sm:py-8">
         <div className="max-w-4xl mx-auto px-2 sm:px-4">
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="bg-white dark:bg-[#1f1f1f] rounded-lg shadow-md dark:shadow-none dark:border dark:border-[#2b2b2b] p-4 sm:p-6 mb-4 sm:mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold mb-4">My Account</h1>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <p className="text-gray-600">Email: {user?.email}</p>
-                <p className="text-2xl font-bold text-blue-600 mt-2">
+                <p className="text-gray-600 dark:text-[#8a8a8a]">
+                  Email: {user?.email}
+                </p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-[#9cdcfe] mt-2">
                   Email Credits: {credits}
                 </p>
               </div>
@@ -394,7 +398,7 @@ export default function AccountPage() {
           </div>
 
           {/* Profile Information Section */}
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="bg-white dark:bg-[#1f1f1f] rounded-lg shadow-md dark:shadow-none dark:border dark:border-[#2b2b2b] p-4 sm:p-6 mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-bold mb-4">
               Profile Information
             </h2>
@@ -402,7 +406,7 @@ export default function AccountPage() {
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 dark:text-[#8a8a8a] mb-1"
                 >
                   Full Name
                 </label>
@@ -413,14 +417,14 @@ export default function AccountPage() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   disabled={profileLoading}
-                  className="w-full p-3 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
+                  className="w-full p-3 border-2 border-gray-300 dark:border-[#2b2b2b] dark:bg-[#181818] dark:text-[#d4d4d4] rounded focus:outline-none focus:border-blue-500 disabled:bg-gray-100 dark:disabled:bg-[#151515]"
                   placeholder="Enter your full name"
                 />
               </div>
               <div>
                 <label
                   htmlFor="phone"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 dark:text-[#8a8a8a] mb-1"
                 >
                   Phone Number
                 </label>
@@ -434,7 +438,7 @@ export default function AccountPage() {
                   required
                   maxLength={10}
                   disabled={profileLoading}
-                  className="w-full p-3 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
+                  className="w-full p-3 border-2 border-gray-300 dark:border-[#2b2b2b] dark:bg-[#181818] dark:text-[#d4d4d4] rounded focus:outline-none focus:border-blue-500 disabled:bg-gray-100 dark:disabled:bg-[#151515]"
                   placeholder="Enter 10-digit phone number"
                 />
               </div>
@@ -442,8 +446,8 @@ export default function AccountPage() {
                 <div
                   className={`p-3 rounded-lg text-sm ${
                     profileMessage.includes("successfully")
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+                      ? "bg-green-100 text-green-800 dark:bg-[#1a2e1a] dark:text-[#aed8aa]"
+                      : "bg-red-100 text-red-800 dark:bg-[#2e1a1a] dark:text-[#f48771]"
                   }`}
                 >
                   {profileMessage}
@@ -463,15 +467,15 @@ export default function AccountPage() {
             <div
               className={`mb-6 p-4 rounded-lg ${
                 message.includes("successful")
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
+                  ? "bg-green-100 text-green-800 dark:bg-[#1a2e1a] dark:text-[#aed8aa]"
+                  : "bg-red-100 text-red-800 dark:bg-[#2e1a1a] dark:text-[#f48771]"
               }`}
             >
               {message}
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="bg-white dark:bg-[#1f1f1f] rounded-lg shadow-md dark:shadow-none dark:border dark:border-[#2b2b2b] p-4 sm:p-6 mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-bold mb-4">
               Purchase Email Credits
             </h2>
@@ -479,13 +483,15 @@ export default function AccountPage() {
               {EMAIL_PACKAGES.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-500 transition-colors"
+                  className="border-2 border-gray-200 dark:border-[#2b2b2b] rounded-lg p-4 hover:border-blue-500 dark:hover:border-[#aed8aa] transition-colors bg-white dark:bg-[#181818]"
                 >
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">
+                    <div className="text-3xl font-bold text-blue-600 dark:text-[#9cdcfe] mb-2">
                       {pkg.emails}
                     </div>
-                    <div className="text-gray-600 mb-2">Email Credits</div>
+                    <div className="text-gray-600 dark:text-[#8a8a8a] mb-2">
+                      Email Credits
+                    </div>
                     <div className="text-2xl font-bold mb-4">
                       {pkg.displayPrice}
                     </div>
@@ -503,12 +509,12 @@ export default function AccountPage() {
           </div>
 
           {paymentHistory.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white dark:bg-[#1f1f1f] rounded-lg shadow-md dark:shadow-none dark:border dark:border-[#2b2b2b] p-6">
               <h2 className="text-2xl font-bold mb-4">Payment History</h2>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b">
+                    <tr className="border-b border-gray-200 dark:border-[#2b2b2b]">
                       <th className="text-left p-2">Date</th>
                       <th className="text-left p-2">Package</th>
                       <th className="text-left p-2">Credits</th>
@@ -521,14 +527,17 @@ export default function AccountPage() {
                       .slice()
                       .reverse()
                       .map((payment: any, index: number) => (
-                        <tr key={index} className="border-b">
+                        <tr
+                          key={index}
+                          className="border-b border-gray-200 dark:border-[#2b2b2b]"
+                        >
                           <td className="p-2">
                             {new Date(payment.date).toLocaleDateString()}
                           </td>
                           <td className="p-2">{payment.emails} emails</td>
                           <td className="p-2">{payment.emails}</td>
                           <td className="p-2">₹{payment.amount}</td>
-                          <td className="p-2 text-sm text-gray-600">
+                          <td className="p-2 text-sm text-gray-600 dark:text-[#8a8a8a]">
                             {payment.paymentId?.substring(0, 20)}...
                           </td>
                         </tr>

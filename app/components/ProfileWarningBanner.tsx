@@ -1,16 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 
 const PROFILE_WARNING_DISMISSED_KEY = "profile_warning_dismissed";
 const ONE_DAY_MS = 24 * 60 * 60 * 1000; // 1 day in milliseconds
 
+function hasProfileValue(value?: string | null) {
+  return Boolean(value && String(value).trim());
+}
+
 export default function ProfileWarningBanner() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, checkAuth } = useAuth();
   const router = useRouter();
   const [showWarning, setShowWarning] = useState(false);
+  const healedRef = useRef(false);
 
   useEffect(() => {
     if (
@@ -26,7 +31,15 @@ export default function ProfileWarningBanner() {
       return;
     }
 
-    const isMissingInfo = !user.name || !user.phone;
+    const isMissingInfo =
+      !hasProfileValue(user.name) || !hasProfileValue(user.phone);
+
+    // Stale login payloads often omit name/phone — refresh once from API
+    if (isMissingInfo && !healedRef.current) {
+      healedRef.current = true;
+      void checkAuth();
+      return;
+    }
 
     if (!isMissingInfo) {
       setShowWarning(false);
@@ -49,7 +62,7 @@ export default function ProfileWarningBanner() {
     }
 
     setShowWarning(true);
-  }, [user, authLoading]);
+  }, [user, authLoading, checkAuth]);
 
   const handleDismiss = () => {
     localStorage.setItem(PROFILE_WARNING_DISMISSED_KEY, Date.now().toString());

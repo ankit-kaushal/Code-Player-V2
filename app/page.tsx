@@ -53,6 +53,8 @@ export default function Home() {
     setCssCollapsed,
     jsCollapsed,
     setJsCollapsed,
+    autoRun,
+    setAutoRun,
     skipEqualResetRef,
   } = useLayoutPrefs();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -751,6 +753,8 @@ ${bodyContent}
             onConsoleLog={handleConsoleLog}
             onRun={handleRunCode}
             onClear={handleClearConsole}
+            autoRun={autoRun}
+            onAutoRunChange={setAutoRun}
           />
         </div>
 
@@ -923,6 +927,8 @@ ${bodyContent}
             onConsoleLog={handleConsoleLog}
             onRun={handleRunCode}
             onClear={handleClearConsole}
+            autoRun={autoRun}
+            onAutoRunChange={setAutoRun}
           />
         </div>
       </div>

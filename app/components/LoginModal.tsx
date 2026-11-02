@@ -5,7 +5,15 @@ import React, { useState, useEffect } from "react";
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (token: string, userData: { userId: string; email: string }) => void;
+  onLogin: (
+    token: string,
+    userData: {
+      userId: string;
+      email: string;
+      name?: string | null;
+      phone?: string | null;
+    }
+  ) => void;
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({
@@ -104,7 +112,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
         throw new Error(data.error || "Invalid OTP");
       }
 
-      onLogin(data.token, { userId: data.userId, email: data.email });
+      onLogin(data.token, {
+        userId: data.userId,
+        email: data.email,
+        name: data.name ?? (mode === "signup" ? name.trim() : null),
+        phone:
+          data.phone ??
+          (mode === "signup" ? phone.replace(/\D/g, "") : null),
+      });
       onClose();
     } catch (err: any) {
       setError(err.message || "Invalid OTP");
@@ -128,23 +143,26 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
   if (!isOpen) return null;
 
+  const inputClass =
+    "p-3 border-2 border-gray-300 dark:border-[#2b2b2b] dark:bg-[#181818] dark:text-[#d4d4d4] rounded focus:outline-none focus:border-green-500 dark:focus:border-[#aed8aa] disabled:opacity-60";
+
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50"
       onClick={handleClose}
     >
       <div
-        className="bg-white p-4 sm:p-8 rounded-lg max-w-2xl w-full mx-2 sm:mx-4 relative shadow-xl max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-[#1f1f1f] p-4 sm:p-8 rounded-lg max-w-2xl w-full mx-2 sm:mx-4 relative shadow-xl max-h-[90vh] overflow-y-auto dark:border dark:border-[#2b2b2b]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="absolute top-2 right-4 text-2xl text-gray-600 hover:text-black"
+          className="absolute top-2 right-4 text-2xl text-gray-600 dark:text-[#8a8a8a] hover:text-black dark:hover:text-[#d4d4d4]"
           onClick={handleClose}
         >
           ×
         </button>
 
-        <div className="flex gap-4 mb-4 border-b">
+        <div className="flex gap-4 mb-4 border-b border-gray-200 dark:border-[#2b2b2b]">
           <button
             type="button"
             onClick={() => {
@@ -156,8 +174,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
             }}
             className={`pb-2 px-4 font-semibold ${
               mode === "signup"
-                ? "text-green-600 border-b-2 border-green-600"
-                : "text-gray-500"
+                ? "text-green-600 dark:text-[#aed8aa] border-b-2 border-green-600 dark:border-[#aed8aa]"
+                : "text-gray-500 dark:text-[#8a8a8a]"
             }`}
           >
             Sign Up
@@ -173,15 +191,15 @@ const LoginModal: React.FC<LoginModalProps> = ({
             }}
             className={`pb-2 px-4 font-semibold ${
               mode === "login"
-                ? "text-green-600 border-b-2 border-green-600"
-                : "text-gray-500"
+                ? "text-green-600 dark:text-[#aed8aa] border-b-2 border-green-600 dark:border-[#aed8aa]"
+                : "text-gray-500 dark:text-[#8a8a8a]"
             }`}
           >
             Login
           </button>
         </div>
 
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-[#d4d4d4]">
           {mode === "signup" ? "Create Account" : "Login"}
         </h2>
 
@@ -196,7 +214,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
                   onChange={(e) => setName(e.target.value)}
                   required
                   disabled={loading}
-                  className="p-3 border-2 border-gray-300 rounded focus:outline-none focus:border-green-500"
+                  className={inputClass}
                 />
                 <input
                   type="tel"
@@ -208,7 +226,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
                   required
                   maxLength={10}
                   disabled={loading}
-                  className="p-3 border-2 border-gray-300 rounded focus:outline-none focus:border-green-500"
+                  className={inputClass}
                 />
               </>
             )}
@@ -219,15 +237,15 @@ const LoginModal: React.FC<LoginModalProps> = ({
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              className="p-3 border-2 border-gray-300 rounded focus:outline-none focus:border-green-500"
+              className={inputClass}
             />
             {error && (
-              <div className="text-red-600 p-3 bg-red-50 rounded text-sm">
+              <div className="text-red-600 dark:text-[#f48771] p-3 bg-red-50 dark:bg-[#2e1a1a] rounded text-sm">
                 {error}
               </div>
             )}
             {message && (
-              <div className="text-green-600 p-3 bg-green-50 rounded text-sm">
+              <div className="text-green-600 dark:text-[#aed8aa] p-3 bg-green-50 dark:bg-[#1a2e1a] rounded text-sm">
                 {message}
               </div>
             )}
@@ -241,7 +259,9 @@ const LoginModal: React.FC<LoginModalProps> = ({
           </form>
         ) : (
           <form onSubmit={handleVerifyOTP} className="flex flex-col gap-4">
-            <p className="text-gray-600">Enter the OTP sent to {email}</p>
+            <p className="text-gray-600 dark:text-[#8a8a8a]">
+              Enter the OTP sent to {email}
+            </p>
             <input
               type="text"
               placeholder="OTP (6 digits)"
@@ -252,25 +272,25 @@ const LoginModal: React.FC<LoginModalProps> = ({
               required
               maxLength={6}
               disabled={loading}
-              className="p-3 border-2 border-gray-300 rounded focus:outline-none focus:border-green-500"
+              className={inputClass}
             />
             {error && (
-              <div className="text-red-600 p-3 bg-red-50 rounded text-sm">
+              <div className="text-red-600 dark:text-[#f48771] p-3 bg-red-50 dark:bg-[#2e1a1a] rounded text-sm">
                 {error}
               </div>
             )}
             {message && (
-              <div className="text-green-600 p-3 bg-green-50 rounded text-sm">
+              <div className="text-green-600 dark:text-[#aed8aa] p-3 bg-green-50 dark:bg-[#1a2e1a] rounded text-sm">
                 {message}
               </div>
             )}
-            <div className="flex items-center justify-between text-sm text-gray-600">
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-[#8a8a8a]">
               <span>Didn&apos;t receive OTP?</span>
               <button
                 type="button"
                 onClick={handleResendOTP}
                 disabled={resendTimer > 0 || resendLoading || loading}
-                className="text-green-600 font-semibold hover:text-green-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                className="text-green-600 dark:text-[#aed8aa] font-semibold hover:text-green-700 disabled:text-gray-400 disabled:cursor-not-allowed"
               >
                 {resendLoading
                   ? "Sending..."
@@ -284,7 +304,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
                 type="button"
                 onClick={() => setStep("form")}
                 disabled={loading}
-                className="flex-1 p-3 bg-gray-500 text-white rounded font-bold hover:bg-gray-600 disabled:bg-gray-400"
+                className="flex-1 p-3 bg-gray-500 dark:bg-[#3a3a3a] text-white rounded font-bold hover:bg-gray-600 dark:hover:bg-[#444444] disabled:bg-gray-400"
               >
                 Back
               </button>

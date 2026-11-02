@@ -9,6 +9,7 @@ export const LAYOUT_STORAGE_KEYS = {
   htmlCollapsed: "cp_htmlCollapsed",
   cssCollapsed: "cp_cssCollapsed",
   jsCollapsed: "cp_jsCollapsed",
+  autoRun: "cp_autoRun",
 } as const;
 
 const DEFAULTS = {
@@ -20,6 +21,7 @@ const DEFAULTS = {
   htmlCollapsed: false,
   cssCollapsed: false,
   jsCollapsed: false,
+  autoRun: false, // console auto-capture; preview always runs
 };
 
 const MAX_EDITOR_TOTAL = 65; // leave at least ~35% for preview/console
@@ -90,6 +92,7 @@ export function loadLayoutPrefs() {
       LAYOUT_STORAGE_KEYS.jsCollapsed,
       DEFAULTS.jsCollapsed
     ),
+    autoRun: readBoolean(LAYOUT_STORAGE_KEYS.autoRun, DEFAULTS.autoRun),
   };
 }
 
@@ -102,6 +105,7 @@ export function saveLayoutPrefs(prefs: {
   htmlCollapsed: boolean;
   cssCollapsed: boolean;
   jsCollapsed: boolean;
+  autoRun: boolean;
 }) {
   if (typeof window === "undefined") return;
   localStorage.setItem(LAYOUT_STORAGE_KEYS.layoutMode, prefs.layoutMode);
@@ -124,4 +128,5 @@ export function saveLayoutPrefs(prefs: {
     LAYOUT_STORAGE_KEYS.jsCollapsed,
     String(prefs.jsCollapsed)
   );
+  localStorage.setItem(LAYOUT_STORAGE_KEYS.autoRun, String(prefs.autoRun));
 }

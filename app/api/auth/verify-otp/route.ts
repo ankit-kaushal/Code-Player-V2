@@ -56,10 +56,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Name and phone number are required for signup' }, { status: 400 });
       }
 
+      const phoneDigits = String(phone).replace(/\D/g, '');
       const result = await usersCollection.insertOne({
         email: normalizedEmail,
-        name,
-        phone,
+        name: String(name).trim(),
+        phone: phoneDigits,
         createdAt: new Date(),
         emailCredits: 1,
         paymentHistory: [],
@@ -70,7 +71,9 @@ export async function POST(req: NextRequest) {
         message: 'Account created and logged in',
         token,
         userId: result.insertedId.toString(),
-        email: normalizedEmail
+        email: normalizedEmail,
+        name: String(name).trim(),
+        phone: phoneDigits,
       });
     } else {
       if (name || phone) {
@@ -82,7 +85,9 @@ export async function POST(req: NextRequest) {
         message: 'Logged in successfully',
         token,
         userId: user._id.toString(),
-        email: normalizedEmail
+        email: normalizedEmail,
+        name: user.name || null,
+        phone: user.phone || null,
       });
     }
   } catch (error) {

@@ -125,19 +125,19 @@ const EmailModal: React.FC<EmailModalProps> = ({
       onClick={handleClose}
     >
       <div
-        className="bg-white p-8 rounded-lg max-w-md w-90 relative shadow-xl"
+        className="bg-white dark:bg-[#1f1f1f] p-8 rounded-lg max-w-md w-90 relative shadow-xl dark:border dark:border-[#2b2b2b]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="absolute top-2 right-4 text-2xl text-gray-600 hover:text-black"
+          className="absolute top-2 right-4 text-2xl text-gray-600 dark:text-[#8a8a8a] hover:text-black dark:hover:text-[#d4d4d4]"
           onClick={handleClose}
         >
           ×
         </button>
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-[#d4d4d4]">
           Send Test Email
         </h2>
-        <p className="text-sm text-gray-600 mb-2">
+        <p className="text-sm text-gray-600 dark:text-[#8a8a8a] mb-2">
           Email Credits:{" "}
           {creditsLoading ? (
             <div
@@ -145,12 +145,14 @@ const EmailModal: React.FC<EmailModalProps> = ({
               style={{ fontSize: "14px" }}
             ></div>
           ) : (
-            <span className="font-bold text-blue-600">{credits ?? 0}</span>
+            <span className="font-bold text-blue-600 dark:text-[#9cdcfe]">
+              {credits ?? 0}
+            </span>
           )}
         </p>
 
         <form onSubmit={handleSend} className="flex flex-col gap-4">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-[#8a8a8a]">
             Enter the email address to send your code to:
           </p>
           <input
@@ -160,10 +162,10 @@ const EmailModal: React.FC<EmailModalProps> = ({
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={loading || !canSend}
-            className="p-3 border-2 border-gray-300 rounded focus:outline-none focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className="p-3 border-2 border-gray-300 dark:border-[#2b2b2b] dark:bg-[#181818] dark:text-[#d4d4d4] rounded focus:outline-none focus:border-green-500 dark:focus:border-[#aed8aa] disabled:bg-gray-100 dark:disabled:bg-[#151515] disabled:cursor-not-allowed"
           />
           {error && (
-            <div className="text-red-600 p-3 bg-red-50 rounded text-sm">
+            <div className="text-red-600 dark:text-[#f48771] p-3 bg-red-50 dark:bg-[#2e1a1a] rounded text-sm">
               {error}
               {!canSend && (
                 <button
@@ -171,7 +173,7 @@ const EmailModal: React.FC<EmailModalProps> = ({
                     onClose();
                     router.push("/account");
                   }}
-                  className="mt-2 block text-blue-600 hover:underline"
+                  className="mt-2 block text-blue-600 dark:text-[#9cdcfe] hover:underline"
                 >
                   Purchase Credits →
                 </button>
@@ -179,7 +181,7 @@ const EmailModal: React.FC<EmailModalProps> = ({
             </div>
           )}
           {message && (
-            <div className="text-green-600 p-3 bg-green-50 rounded text-sm">
+            <div className="text-green-600 dark:text-[#aed8aa] p-3 bg-green-50 dark:bg-[#1a2e1a] rounded text-sm">
               {message}
             </div>
           )}

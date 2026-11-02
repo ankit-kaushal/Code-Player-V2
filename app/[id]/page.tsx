@@ -55,6 +55,8 @@ export default function SharedCodePage() {
     setCssCollapsed,
     jsCollapsed,
     setJsCollapsed,
+    autoRun,
+    setAutoRun,
     skipEqualResetRef,
   } = useLayoutPrefs();
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -821,6 +823,8 @@ ${bodyContent}
             onConsoleLog={handleConsoleLog}
             onRun={handleRunCode}
             onClear={handleClearConsole}
+            autoRun={autoRun}
+            onAutoRunChange={setAutoRun}
           />
         </div>
       </div>

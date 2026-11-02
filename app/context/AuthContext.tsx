@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const checkAuth = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
+      setUser(null);
       setLoading(false);
       return;
     }
@@ -54,9 +55,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(userData);
       } else {
         localStorage.removeItem("token");
+        setUser(null);
       }
     } catch (error) {
       localStorage.removeItem("token");
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -65,6 +68,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = (token: string, userData: User) => {
     localStorage.setItem("token", token);
     setUser(userData);
+    setLoading(false);
+    // Always refresh from DB so name/phone are present after signup/login
+    void checkAuth();
   };
 
   const logout = () => {
