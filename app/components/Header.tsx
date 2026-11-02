@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 interface HeaderProps {
   showEmailButton?: boolean;
@@ -45,6 +46,7 @@ export default function Header({
 }: HeaderProps) {
   const router = useRouter();
   const { user, loading: authLoading, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [userCredits, setUserCredits] = useState<number | null>(null);
   const [creditsLoading, setCreditsLoading] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -114,7 +116,7 @@ export default function Header({
   return (
     <header
       role="banner"
-      className="bg-gray-800 text-white p-2 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 shadow-md z-10"
+      className="bg-gray-800 dark:bg-[#181818] dark:border-b dark:border-[#2b2b2b] text-white p-2 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 shadow-md dark:shadow-none z-10"
     >
       <Link
         href="/"
@@ -131,6 +133,15 @@ export default function Header({
         />
       </Link>
       <div className="flex gap-1 sm:gap-2 items-center flex-wrap justify-center sm:justify-end w-full sm:w-auto">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-700 dark:bg-[#2b2b2b] text-white dark:text-[#d4d4d4] rounded hover:bg-gray-600 dark:hover:bg-[#333333] text-xs sm:text-sm font-medium border border-transparent dark:border-[#3a3a3a]"
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {theme === "dark" ? "☀️" : "🌙"}
+        </button>
         {!authLoading && user ? (
           <>
             {showEmailButton && (
@@ -179,14 +190,14 @@ export default function Header({
                   </span>
                 </button>
                 {showDownloadMenu && (
-                  <div className="absolute right-0 mt-2 min-w-[220px] bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  <div className="absolute right-0 mt-2 min-w-[220px] bg-white dark:bg-[#1f1f1f] rounded-lg shadow-lg border border-gray-200 dark:border-[#2b2b2b] py-2 z-50">
                     {onDownloadOneFile && (
                       <button
                         onClick={() => {
                           setShowDownloadMenu(false);
                           onDownloadOneFile();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 whitespace-nowrap"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2 whitespace-nowrap"
                       >
                         <span>📄</span>
                         <span className="flex-1">Download as one file</span>
@@ -198,7 +209,7 @@ export default function Header({
                           setShowDownloadMenu(false);
                           onDownloadMultipleFiles();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 whitespace-nowrap"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2 whitespace-nowrap"
                       >
                         <span>📁</span>
                         <span className="flex-1">
@@ -212,7 +223,7 @@ export default function Header({
                           setShowDownloadMenu(false);
                           onDownloadPreviewAsPDF();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 whitespace-nowrap"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2 whitespace-nowrap"
                       >
                         <span>📄</span>
                         <span className="flex-1">Download preview as PDF</span>
@@ -224,7 +235,7 @@ export default function Header({
                           setShowDownloadMenu(false);
                           onDownloadPreviewAsImage();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 whitespace-nowrap"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2 whitespace-nowrap"
                       >
                         <span>🖼️</span>
                         <span className="flex-1">
@@ -258,15 +269,15 @@ export default function Header({
                 {user.email.charAt(0).toUpperCase()}
               </button>
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <div className="px-4 py-2 border-b border-gray-200">
-                    <p className="text-sm font-semibold text-gray-800">
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#1f1f1f] rounded-lg shadow-lg border border-gray-200 dark:border-[#2b2b2b] py-2 z-50">
+                  <div className="px-4 py-2 border-b border-gray-200 dark:border-[#2b2b2b]">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-[#d4d4d4]">
                       {user.email}
                     </p>
                   </div>
-                  <div className="px-4 py-2 border-b border-gray-200">
+                  <div className="px-4 py-2 border-b border-gray-200 dark:border-[#2b2b2b]">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700">
+                      <span className="text-sm text-gray-700 dark:text-[#8a8a8a]">
                         Total Tokens:
                       </span>
                       {creditsLoading ? (
@@ -275,7 +286,7 @@ export default function Header({
                           style={{ fontSize: "14px" }}
                         ></div>
                       ) : (
-                        <span className="text-sm font-semibold text-gray-900">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-[#d4d4d4]">
                           {userCredits ?? 0}
                         </span>
                       )}
@@ -297,7 +308,7 @@ export default function Header({
                       setShowUserMenu(false);
                       router.push("/account");
                     }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b]"
                   >
                     Account
                   </button>
@@ -306,7 +317,7 @@ export default function Header({
                       setShowUserMenu(false);
                       logout();
                     }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-[#2b2b2b]"
                   >
                     Logout
                   </button>

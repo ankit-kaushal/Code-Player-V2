@@ -7,6 +7,8 @@ import { css } from "@codemirror/lang-css";
 import { javascript } from "@codemirror/lang-javascript";
 import { EditorView } from "@codemirror/view";
 import { indentUnit } from "@codemirror/language";
+import { useTheme } from "../context/ThemeContext";
+import { playcodeDark } from "@/lib/playcode-theme";
 
 interface CodeEditorProps {
   language: string;
@@ -25,6 +27,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   isCollapsed = false,
   onToggleCollapse,
 }) => {
+  const { theme } = useTheme();
   const editorViewRef = useRef<EditorView | null>(null);
   const tabSize = 2; // Fixed tab size
 
@@ -37,6 +40,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         }
       }),
       indentUnit.of(" ".repeat(tabSize)),
+      EditorView.theme({
+        "&": { height: "100%" },
+        ".cm-scroller": { overflow: "auto" },
+      }),
     ];
 
     switch (language.toLowerCase()) {
@@ -170,17 +177,21 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
   return (
     <div
-      className="flex flex-col h-full w-full border border-gray-300 rounded overflow-hidden"
+      className="flex flex-col h-full w-full border border-gray-300 dark:border-[#2b2b2b] rounded overflow-hidden"
       style={{ minWidth: 0, maxWidth: "100%" }}
     >
-      <div className="bg-gray-100 border-b border-gray-300 flex-shrink-0">
-        <div className="px-3 py-2 text-xs font-bold text-gray-600 flex justify-between items-center">
-          <span>{language.toUpperCase()}</span>
-          <div className="flex items-center gap-2">
+      <div className="bg-gray-100 dark:bg-[#2b2b2b] border-b border-gray-300 dark:border-[#2b2b2b] flex-shrink-0">
+        <div className="px-2 sm:px-3 py-2 text-xs font-bold text-gray-600 dark:text-[#8a8a8a] flex justify-between items-center gap-1 min-w-0">
+          <span className="truncate">
+            {language.toLowerCase() === "javascript" || language.toLowerCase() === "js"
+              ? "JS"
+              : language.toUpperCase()}
+          </span>
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {!isCollapsed && !readOnly && (
               <button
                 onClick={handleFormat}
-                className="px-1.5 py-0.5 bg-white text-gray-600 border border-gray-300 rounded hover:bg-gray-50 hover:border-gray-400 transition-all text-[10px] font-medium shadow-sm"
+                className="px-1.5 py-0.5 bg-white dark:bg-[#1f1f1f] text-gray-600 dark:text-[#d4d4d4] border border-gray-300 dark:border-[#3a3a3a] rounded hover:bg-gray-50 dark:hover:bg-[#333333] hover:border-gray-400 transition-all text-[10px] font-medium shadow-sm whitespace-nowrap"
                 title="Format Code"
                 type="button"
               >
@@ -190,7 +201,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             {onToggleCollapse && (
               <button
                 onClick={onToggleCollapse}
-                className="text-gray-500 hover:text-gray-700 text-base leading-none w-5 h-5 flex items-center justify-center rounded hover:bg-gray-200 transition-colors"
+                className="text-gray-500 dark:text-[#8a8a8a] hover:text-gray-700 dark:hover:text-[#d4d4d4] text-base leading-none w-5 h-5 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors flex-shrink-0"
                 title="Close"
               >
                 ×
@@ -201,12 +212,13 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       </div>
       {!isCollapsed && (
         <div
-          className="flex-1 min-h-0 overflow-y-auto bg-white"
-          style={{ minWidth: 0, maxWidth: "100%", overflowX: "auto" }}
+          className="flex-1 min-h-0 h-full overflow-hidden bg-white dark:bg-[#181818]"
+          style={{ minWidth: 0, maxWidth: "100%" }}
         >
           <CodeMirror
             value={value}
             height="100%"
+            theme={theme === "dark" ? playcodeDark : "light"}
             extensions={extensions}
             onChange={onChange}
             editable={!readOnly}
@@ -222,6 +234,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               highlightSelectionMatches: true,
             }}
             placeholder={`Enter your ${language} code here...`}
+            style={{ height: "100%" }}
+            className="h-full"
           />
         </div>
       )}

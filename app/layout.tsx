@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Work_Sans } from "next/font/google";
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import LayoutWrapper from "./components/LayoutWrapper";
 import "./globals.css";
 
@@ -120,7 +121,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={workSans.variable}>
+    <html lang="en" className={workSans.variable} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
@@ -128,11 +129,18 @@ export default function RootLayout({
             __html: JSON.stringify(structuredData),
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('cp_theme');if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
       </head>
-      <body className={workSans.className}>
-        <AuthProvider>
-          <LayoutWrapper>{children}</LayoutWrapper>
-        </AuthProvider>
+      <body className={`${workSans.className} bg-gray-100 text-gray-900 dark:bg-[#181818] dark:text-[#d4d4d4]`}>
+        <ThemeProvider>
+          <AuthProvider>
+            <LayoutWrapper>{children}</LayoutWrapper>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

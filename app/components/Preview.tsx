@@ -15,6 +15,7 @@ interface PreviewProps {
   onConsoleLog?: (logs: any[]) => void;
   shouldRun?: boolean;
   captureConsole?: boolean;
+  compact?: boolean;
 }
 
 export interface PreviewHandle {
@@ -25,7 +26,15 @@ export interface PreviewHandle {
 
 const Preview = forwardRef<PreviewHandle, PreviewProps>(
   (
-    { html, css, js, onConsoleLog, shouldRun = false, captureConsole = false },
+    {
+      html,
+      css,
+      js,
+      onConsoleLog,
+      shouldRun = false,
+      captureConsole = false,
+      compact = false,
+    },
     ref
   ) => {
     const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -245,17 +254,25 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
     );
 
     return (
-      <div className="flex flex-col h-full w-full border border-gray-300 rounded overflow-hidden">
-        <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 text-xs font-bold text-gray-600 flex-shrink-0">
-          Preview
-        </div>
-        <div className="flex-1 min-h-0 overflow-auto">
+      <div
+        className={`flex flex-col h-full w-full overflow-hidden ${
+          compact
+            ? ""
+            : "border border-gray-300 dark:border-[#2b2b2b] rounded"
+        }`}
+      >
+        {!compact && (
+          <div className="bg-gray-100 dark:bg-[#2b2b2b] px-3 py-2 border-b border-gray-300 dark:border-[#2b2b2b] text-xs font-bold text-gray-600 dark:text-[#8a8a8a] flex-shrink-0">
+            Preview
+          </div>
+        )}
+        <div className="flex-1 min-h-0 overflow-hidden bg-white dark:bg-[#181818]">
           <iframe
             ref={iframeRef}
             title="preview"
             className="w-full h-full border-none bg-white"
             sandbox="allow-scripts allow-same-origin"
-            style={{ display: "block", minHeight: "100%" }}
+            style={{ display: "block", height: "100%", minHeight: "100%" }}
           />
         </div>
       </div>

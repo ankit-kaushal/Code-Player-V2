@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { Resizable } from "re-resizable";
 import { useAuth } from "./context/AuthContext";
 import CodeEditor from "./components/CodeEditor";
-import Preview, { PreviewHandle } from "./components/Preview";
-import Console from "./components/Console";
+import { PreviewHandle } from "./components/Preview";
+import PreviewConsolePanel from "./components/PreviewConsolePanel";
 import LoginModal from "./components/LoginModal";
 import EmailModal from "./components/EmailModal";
 import Header from "./components/Header";
+import { useLayoutPrefs } from "./hooks/useLayoutPrefs";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -32,20 +33,38 @@ export default function Home() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([]);
-  const [activeTab, setActiveTab] = useState<"preview" | "console">("preview");
   const [shouldRunCode, setShouldRunCode] = useState(false);
   const previewRef = useRef<PreviewHandle>(null);
 
-  // Collapsible states
-  const [htmlCollapsed, setHtmlCollapsed] = useState(false);
-  const [cssCollapsed, setCssCollapsed] = useState(false);
-  const [jsCollapsed, setJsCollapsed] = useState(false);
-
-  // Resizable widths (in percentage)
-  const [htmlWidth, setHtmlWidth] = useState(25);
-  const [cssWidth, setCssWidth] = useState(25);
-  const [jsWidth, setJsWidth] = useState(25);
+  const {
+    layoutMode,
+    setLayoutMode,
+    htmlWidth,
+    setHtmlWidth,
+    cssWidth,
+    setCssWidth,
+    jsWidth,
+    setJsWidth,
+    splitPreviewPercent,
+    setSplitPreviewPercent,
+    htmlCollapsed,
+    setHtmlCollapsed,
+    cssCollapsed,
+    setCssCollapsed,
+    jsCollapsed,
+    setJsCollapsed,
+    skipEqualResetRef,
+  } = useLayoutPrefs();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const sync = () => setIsDesktop(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   const checkCanEdit = useCallback(
     async (id: string | null = shareId) => {
@@ -521,8 +540,10 @@ ${bodyContent}
     }
   };
 
-  // Reset widths to equal when editors are collapsed/expanded
+  // Reset widths to equal when editors are collapsed/expanded (not on hydrate)
   useEffect(() => {
+    if (skipEqualResetRef.current) return;
+
     const visibleEditors = [!htmlCollapsed, !cssCollapsed, !jsCollapsed].filter(
       Boolean
     ).length;
@@ -531,12 +552,11 @@ ${bodyContent}
       return;
     }
 
-    // When editors are collapsed or expanded, divide equally
-    const equalWidth = 25; // 25% each for 3 editors, preview gets 25%
-    if (!htmlCollapsed && htmlWidth !== equalWidth) setHtmlWidth(equalWidth);
-    if (!cssCollapsed && cssWidth !== equalWidth) setCssWidth(equalWidth);
-    if (!jsCollapsed && jsWidth !== equalWidth) setJsWidth(equalWidth);
-  }, [htmlCollapsed, cssCollapsed, jsCollapsed]); // Only depend on collapsed states
+    const equalWidth = 20;
+    if (!htmlCollapsed) setHtmlWidth(equalWidth);
+    if (!cssCollapsed) setCssWidth(equalWidth);
+    if (!jsCollapsed) setJsWidth(equalWidth);
+  }, [htmlCollapsed, cssCollapsed, jsCollapsed, setHtmlWidth, setCssWidth, setJsWidth, skipEqualResetRef]);
 
   // Calculate widths based on collapsed state and user-defined widths
   const calculateWidths = () => {
@@ -572,7 +592,7 @@ ${bodyContent}
   } = calculateWidths();
 
   return (
-    <main className="h-screen flex flex-col overflow-hidden bg-gray-100">
+    <main className="h-screen flex flex-col overflow-hidden bg-gray-100 dark:bg-[#181818]">
       <h1 className="sr-only">
         Code Player - Online HTML, CSS & JavaScript Editor
       </h1>
@@ -609,7 +629,7 @@ ${bodyContent}
       <div className="flex-1 flex relative min-h-0">
         {/* Collapsed Editors Sidebar */}
         {(htmlCollapsed || cssCollapsed || jsCollapsed) && (
-          <div className="hidden md:flex w-16 bg-gray-200 border-r border-gray-300 flex-col items-center py-3 gap-2 flex-shrink-0">
+          <div className="hidden md:flex w-16 bg-gray-200 dark:bg-[#1f1f1f] border-r border-gray-300 dark:border-[#2b2b2b] flex-col items-center py-3 gap-2 flex-shrink-0">
             {htmlCollapsed && (
               <button
                 onClick={() => setHtmlCollapsed(false)}
@@ -715,65 +735,23 @@ ${bodyContent}
           )}
 
           {/* Preview/Console Panel - Mobile */}
-          <div
-            className="w-full border border-gray-300 rounded flex flex-col flex-1 min-h-0"
+          <PreviewConsolePanel
+            className="w-full flex-1"
             style={{ height: 0 }}
-          >
-            <div className="flex border-gray-300 bg-gray-100 flex-shrink-0">
-              <button
-                onClick={() => setActiveTab("preview")}
-                className={`px-4 py-2 text-sm font-medium ${
-                  activeTab === "preview"
-                    ? "bg-white border-b-2 border-blue-600 text-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Preview
-              </button>
-              <button
-                onClick={() => setActiveTab("console")}
-                className={`px-4 py-2 text-sm font-medium ${
-                  activeTab === "console"
-                    ? "bg-white border-b-2 border-blue-600 text-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Console ({consoleLogs.length})
-              </button>
-            </div>
-            <div
-              className="flex-1 min-h-0 relative overflow-hidden"
-              style={{ height: "100%" }}
-            >
-              <div
-                className={`absolute inset-0 w-full h-full ${
-                  activeTab === "preview" ? "flex" : "hidden"
-                }`}
-                style={{ flexDirection: "column" }}
-              >
-                <Preview
-                  ref={previewRef}
-                  html={html}
-                  css={css}
-                  js={js}
-                  onConsoleLog={handleConsoleLog}
-                  shouldRun={shouldRunCode}
-                />
-              </div>
-              <div
-                className={`absolute inset-0 w-full h-full ${
-                  activeTab === "console" ? "flex" : "hidden"
-                }`}
-                style={{ flexDirection: "column" }}
-              >
-                <Console
-                  logs={consoleLogs}
-                  onRun={handleRunCode}
-                  onClear={handleClearConsole}
-                />
-              </div>
-            </div>
-          </div>
+            layoutMode={layoutMode}
+            onLayoutModeChange={setLayoutMode}
+            splitPreviewPercent={splitPreviewPercent}
+            onSplitPreviewPercentChange={setSplitPreviewPercent}
+            html={html}
+            css={css}
+            js={js}
+            consoleLogs={consoleLogs}
+            shouldRunCode={shouldRunCode}
+            previewRef={isDesktop ? undefined : previewRef}
+            onConsoleLog={handleConsoleLog}
+            onRun={handleRunCode}
+            onClear={handleClearConsole}
+          />
         </div>
 
         {/* Desktop Layout - Horizontal with Resizable */}
@@ -929,61 +907,23 @@ ${bodyContent}
             </Resizable>
           )}
 
-          {/* Preview/Console Panel - Desktop */}
-          <div
-            className="hidden md:flex min-h-0 flex-col h-full"
-            style={{ width: `${previewWidth}%` }}
-          >
-            <div className="flex border-gray-300 bg-gray-100 flex-shrink-0">
-              <button
-                onClick={() => setActiveTab("preview")}
-                className={`px-4 py-2 text-sm font-medium ${
-                  activeTab === "preview"
-                    ? "bg-white border-b-2 border-blue-600 text-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Preview
-              </button>
-              <button
-                onClick={() => setActiveTab("console")}
-                className={`px-4 py-2 text-sm font-medium ${
-                  activeTab === "console"
-                    ? "bg-white border-b-2 border-blue-600 text-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Console ({consoleLogs.length})
-              </button>
-            </div>
-            <div className="flex-1 min-h-0 relative h-full">
-              <div
-                className={`absolute inset-0 ${
-                  activeTab === "preview" ? "block" : "hidden"
-                }`}
-              >
-                <Preview
-                  ref={previewRef}
-                  html={html}
-                  css={css}
-                  js={js}
-                  onConsoleLog={handleConsoleLog}
-                  shouldRun={shouldRunCode}
-                />
-              </div>
-              <div
-                className={`absolute inset-0 ${
-                  activeTab === "console" ? "block" : "hidden"
-                }`}
-              >
-                <Console
-                  logs={consoleLogs}
-                  onRun={handleRunCode}
-                  onClear={handleClearConsole}
-                />
-              </div>
-            </div>
-          </div>
+          {/* Preview/Console Panel - Desktop — flex-1 fills leftover space after editor % widths */}
+          <PreviewConsolePanel
+            className="h-full flex-1 min-w-[180px]"
+            layoutMode={layoutMode}
+            onLayoutModeChange={setLayoutMode}
+            splitPreviewPercent={splitPreviewPercent}
+            onSplitPreviewPercentChange={setSplitPreviewPercent}
+            html={html}
+            css={css}
+            js={js}
+            consoleLogs={consoleLogs}
+            shouldRunCode={shouldRunCode}
+            previewRef={isDesktop ? previewRef : undefined}
+            onConsoleLog={handleConsoleLog}
+            onRun={handleRunCode}
+            onClear={handleClearConsole}
+          />
         </div>
       </div>
 
