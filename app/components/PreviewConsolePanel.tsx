@@ -27,6 +27,7 @@ interface PreviewConsolePanelProps {
   onClear: () => void;
   autoRun?: boolean;
   onAutoRunChange?: (autoRun: boolean) => void;
+  onToggleCollapse?: () => void;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -47,6 +48,7 @@ export default function PreviewConsolePanel({
   onClear,
   autoRun = false,
   onAutoRunChange,
+  onToggleCollapse,
   className = "",
   style,
 }: PreviewConsolePanelProps) {
@@ -150,6 +152,19 @@ export default function PreviewConsolePanel({
             />
             Auto
           </label>
+        )}
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className={`md:hidden text-gray-500 dark:text-[#8a8a8a] hover:text-gray-700 dark:hover:text-[#d4d4d4] text-base leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors flex-shrink-0 ${
+              onAutoRunChange ? "mr-1" : "ml-auto mr-1"
+            }`}
+            title="Close preview"
+            aria-label="Close preview"
+          >
+            ×
+          </button>
         )}
       </div>
 

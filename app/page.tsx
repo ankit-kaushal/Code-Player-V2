@@ -61,6 +61,7 @@ export default function Home() {
   } = useLayoutPrefs();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [previewCollapsed, setPreviewCollapsed] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
@@ -568,12 +569,6 @@ ${bodyContent}
         onLoginClick={() => setIsLoginModalOpen(true)}
       />
 
-      {!shareId && (
-        <div className="bg-amber-400 dark:bg-[#c9a227] text-amber-950 dark:text-[#1a1408] px-4 py-2 text-center text-xs sm:text-sm font-medium z-10">
-          Your code is not saved yet. Save it or you may lose your work.
-        </div>
-      )}
-
       {message && (
         <div className="bg-green-500 text-white px-4 py-2 text-center text-sm">
           {message}
@@ -622,7 +617,7 @@ ${bodyContent}
 
         {/* Mobile Layout - Stacked Vertically */}
         <div className="md:hidden flex-1 flex flex-col gap-2 p-2 min-h-0 overflow-hidden">
-          {(htmlCollapsed || cssCollapsed || jsCollapsed) && (
+          {(htmlCollapsed || cssCollapsed || jsCollapsed || previewCollapsed) && (
             <div className="flex gap-2 flex-wrap flex-shrink-0">
               {htmlCollapsed && (
                 <button
@@ -648,12 +643,30 @@ ${bodyContent}
                   Reopen JS
                 </button>
               )}
+              {previewCollapsed && (
+                <button
+                  onClick={() => setPreviewCollapsed(false)}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow"
+                >
+                  Reopen Preview
+                </button>
+              )}
             </div>
           )}
 
-          <div className="flex flex-col gap-2 overflow-y-auto flex-shrink-0 max-h-[42vh]">
+          <div
+            className={`flex flex-col gap-2 overflow-y-auto min-h-0 ${
+              previewCollapsed
+                ? "flex-1"
+                : "flex-shrink-0 max-h-[42vh]"
+            }`}
+          >
             {!htmlCollapsed && (
-              <div className="w-full flex-shrink-0 h-36">
+              <div
+                className={`w-full flex-shrink-0 ${
+                  previewCollapsed ? "min-h-36 flex-1" : "h-36"
+                }`}
+              >
                 <CodeEditor
                   language="html"
                   value={html}
@@ -665,7 +678,11 @@ ${bodyContent}
               </div>
             )}
             {!cssCollapsed && (
-              <div className="w-full flex-shrink-0 h-36">
+              <div
+                className={`w-full flex-shrink-0 ${
+                  previewCollapsed ? "min-h-36 flex-1" : "h-36"
+                }`}
+              >
                 <CodeEditor
                   language="css"
                   value={css}
@@ -677,7 +694,11 @@ ${bodyContent}
               </div>
             )}
             {!jsCollapsed && (
-              <div className="w-full flex-shrink-0 h-36">
+              <div
+                className={`w-full flex-shrink-0 ${
+                  previewCollapsed ? "min-h-36 flex-1" : "h-36"
+                }`}
+              >
                 <CodeEditor
                   language="javascript"
                   value={js}
@@ -690,25 +711,28 @@ ${bodyContent}
             )}
           </div>
 
-          <PreviewConsolePanel
-            className="w-full flex-1 min-h-[160px]"
-            style={{ height: 0 }}
-            layoutMode={layoutMode}
-            onLayoutModeChange={setLayoutMode}
-            splitPreviewPercent={splitPreviewPercent}
-            onSplitPreviewPercentChange={setSplitPreviewPercent}
-            html={html}
-            css={css}
-            js={js}
-            consoleLogs={consoleLogs}
-            shouldRunCode={shouldRunCode}
-            previewRef={isDesktop ? undefined : previewRef}
-            onConsoleLog={handleConsoleLog}
-            onRun={handleRunCode}
-            onClear={handleClearConsole}
-            autoRun={autoRun}
-            onAutoRunChange={setAutoRun}
-          />
+          {!previewCollapsed && (
+            <PreviewConsolePanel
+              className="w-full flex-1 min-h-[160px]"
+              style={{ height: 0 }}
+              layoutMode={layoutMode}
+              onLayoutModeChange={setLayoutMode}
+              splitPreviewPercent={splitPreviewPercent}
+              onSplitPreviewPercentChange={setSplitPreviewPercent}
+              html={html}
+              css={css}
+              js={js}
+              consoleLogs={consoleLogs}
+              shouldRunCode={shouldRunCode}
+              previewRef={isDesktop ? undefined : previewRef}
+              onConsoleLog={handleConsoleLog}
+              onRun={handleRunCode}
+              onClear={handleClearConsole}
+              autoRun={autoRun}
+              onAutoRunChange={setAutoRun}
+              onToggleCollapse={() => setPreviewCollapsed(true)}
+            />
+          )}
         </div>
 
         {/* Desktop Layout - Horizontal with Resizable */}

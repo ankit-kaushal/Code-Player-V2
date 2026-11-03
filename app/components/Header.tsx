@@ -216,8 +216,8 @@ export default function Header({
       </Link>
       <div className="flex gap-1.5 sm:gap-2 items-center justify-end min-w-0 flex-1">
         {showUnsavedHint && (
-          <span className="hidden sm:inline text-xs text-amber-300 max-w-[200px] text-right leading-tight">
-            Code not saved yet — save or you may lose it
+          <span className="text-[10px] sm:text-xs text-amber-300 whitespace-nowrap overflow-hidden text-ellipsis min-w-0 flex-1 text-right">
+            You have unsaved changes. Save or you may lose your work.
           </span>
         )}
         <button
