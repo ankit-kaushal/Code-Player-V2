@@ -156,7 +156,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="absolute top-2 right-4 text-2xl text-gray-600 dark:text-[#8a8a8a] hover:text-black dark:hover:text-[#d4d4d4]"
+          className="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-2xl text-gray-600 dark:text-[#8a8a8a] hover:text-black dark:hover:text-[#d4d4d4]"
           onClick={handleClose}
         >
           ×

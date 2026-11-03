@@ -125,12 +125,13 @@ const EmailModal: React.FC<EmailModalProps> = ({
       onClick={handleClose}
     >
       <div
-        className="bg-white dark:bg-[#1f1f1f] p-8 rounded-lg max-w-md w-90 relative shadow-xl dark:border dark:border-[#2b2b2b]"
+        className="bg-white dark:bg-[#1f1f1f] p-4 sm:p-8 rounded-lg max-w-md w-full mx-2 sm:mx-4 relative shadow-xl dark:border dark:border-[#2b2b2b] max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="absolute top-2 right-4 text-2xl text-gray-600 dark:text-[#8a8a8a] hover:text-black dark:hover:text-[#d4d4d4]"
+          className="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-2xl text-gray-600 dark:text-[#8a8a8a] hover:text-black dark:hover:text-[#d4d4d4]"
           onClick={handleClose}
+          aria-label="Close"
         >
           ×
         </button>

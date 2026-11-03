@@ -79,11 +79,11 @@ export default function ProfileWarningBanner() {
 
   return (
     <div
-      className="text-white px-4 py-2.5 flex items-center justify-center gap-4 z-20 relative"
+      className="text-white px-3 sm:px-4 py-2 flex items-start sm:items-center justify-center gap-2 sm:gap-4 z-20 relative"
       style={{ backgroundColor: "#d43d4f" }}
     >
-      <div className="flex items-center gap-3 flex-1 justify-center">
-        <span className="text-center" style={{ fontSize: "12px" }}>
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-center min-w-0">
+        <span className="text-center text-xs sm:text-sm leading-snug">
           Please complete your profile by adding your name and phone number in
           your{" "}
           <button
@@ -96,7 +96,7 @@ export default function ProfileWarningBanner() {
       </div>
       <button
         onClick={handleDismiss}
-        className="text-white hover:text-red-100 font-bold text-lg leading-none flex-shrink-0 transition-colors"
+        className="text-white hover:text-red-100 font-bold text-xl leading-none flex-shrink-0 transition-colors w-9 h-9 flex items-center justify-center"
         aria-label="Dismiss warning"
       >
         ×

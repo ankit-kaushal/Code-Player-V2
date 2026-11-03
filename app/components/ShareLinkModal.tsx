@@ -50,30 +50,30 @@ export default function ShareLinkModal({
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="absolute top-2 right-4 text-2xl text-gray-600 dark:text-[#8a8a8a] hover:text-black dark:hover:text-[#d4d4d4]"
+          className="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-2xl text-gray-600 dark:text-[#8a8a8a] hover:text-black dark:hover:text-[#d4d4d4]"
           onClick={onClose}
           aria-label="Close"
         >
           ×
         </button>
-        <h2 className="text-xl font-bold mb-2 text-gray-800 dark:text-[#d4d4d4]">
+        <h2 className="text-xl font-bold mb-2 text-gray-800 dark:text-[#d4d4d4] pr-8">
           Share your code
         </h2>
         <p className="text-sm text-gray-600 dark:text-[#8a8a8a] mb-4">
           Anyone with this link can view your playground.
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             readOnly
             value={shareUrl}
-            className="flex-1 p-3 border-2 border-gray-300 dark:border-[#2b2b2b] dark:bg-[#181818] dark:text-[#d4d4d4] rounded text-sm focus:outline-none"
+            className="flex-1 min-w-0 p-3 border-2 border-gray-300 dark:border-[#2b2b2b] dark:bg-[#181818] dark:text-[#d4d4d4] rounded text-sm focus:outline-none"
             onFocus={(e) => e.target.select()}
           />
           <button
             type="button"
             onClick={handleCopy}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium whitespace-nowrap"
+            className="px-4 py-2.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium whitespace-nowrap w-full sm:w-auto"
           >
             {copied ? "Copied!" : "Copy"}
           </button>

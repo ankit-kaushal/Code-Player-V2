@@ -113,6 +113,14 @@ body {
   z-index: 20;
 }
 
+/* Wider hit targets for pane resize handles (desktop + touch) */
+.resize-handle {
+  width: 12px !important;
+  right: -6px !important;
+  touch-action: none;
+  z-index: 20;
+}
+
 /* Prevent Resizable components from expanding */
 .re-resizable {
   min-width: 0 !important;

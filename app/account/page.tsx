@@ -386,8 +386,8 @@ export default function AccountPage() {
           <div className="bg-white dark:bg-[#1f1f1f] rounded-lg shadow-md dark:shadow-none dark:border dark:border-[#2b2b2b] p-4 sm:p-6 mb-4 sm:mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold mb-4">My Account</h1>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <p className="text-gray-600 dark:text-[#8a8a8a]">
+              <div className="min-w-0 w-full">
+                <p className="text-gray-600 dark:text-[#8a8a8a] break-all">
                   Email: {user?.email}
                 </p>
                 <p className="text-2xl font-bold text-blue-600 dark:text-[#9cdcfe] mt-2">
@@ -509,9 +509,52 @@ export default function AccountPage() {
           </div>
 
           {paymentHistory.length > 0 && (
-            <div className="bg-white dark:bg-[#1f1f1f] rounded-lg shadow-md dark:shadow-none dark:border dark:border-[#2b2b2b] p-6">
-              <h2 className="text-2xl font-bold mb-4">Payment History</h2>
-              <div className="overflow-x-auto">
+            <div className="bg-white dark:bg-[#1f1f1f] rounded-lg shadow-md dark:shadow-none dark:border dark:border-[#2b2b2b] p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4">
+                Payment History
+              </h2>
+
+              {/* Mobile: stacked cards */}
+              <div className="md:hidden space-y-3">
+                {paymentHistory
+                  .slice()
+                  .reverse()
+                  .map((payment: any, index: number) => (
+                    <div
+                      key={index}
+                      className="border border-gray-200 dark:border-[#2b2b2b] rounded-lg p-3 space-y-1.5"
+                    >
+                      <div className="flex justify-between gap-2 text-sm">
+                        <span className="text-gray-500 dark:text-[#8a8a8a]">
+                          Date
+                        </span>
+                        <span>
+                          {new Date(payment.date).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-2 text-sm">
+                        <span className="text-gray-500 dark:text-[#8a8a8a]">
+                          Package
+                        </span>
+                        <span>{payment.emails} emails</span>
+                      </div>
+                      <div className="flex justify-between gap-2 text-sm">
+                        <span className="text-gray-500 dark:text-[#8a8a8a]">
+                          Amount
+                        </span>
+                        <span>₹{payment.amount}</span>
+                      </div>
+                      {payment.paymentId && (
+                        <p className="text-xs text-gray-500 dark:text-[#8a8a8a] break-all pt-1 border-t border-gray-100 dark:border-[#2b2b2b]">
+                          {payment.paymentId}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+              </div>
+
+              {/* Desktop: table */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-[#2b2b2b]">
@@ -537,8 +580,8 @@ export default function AccountPage() {
                           <td className="p-2">{payment.emails} emails</td>
                           <td className="p-2">{payment.emails}</td>
                           <td className="p-2">₹{payment.amount}</td>
-                          <td className="p-2 text-sm text-gray-600 dark:text-[#8a8a8a]">
-                            {payment.paymentId?.substring(0, 20)}...
+                          <td className="p-2 text-sm text-gray-600 dark:text-[#8a8a8a] break-all max-w-[200px]">
+                            {payment.paymentId}
                           </td>
                         </tr>
                       ))}

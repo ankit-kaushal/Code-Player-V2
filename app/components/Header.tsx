@@ -24,6 +24,7 @@ interface HeaderProps {
   shareDisabled?: boolean;
   shareLoading?: boolean;
   saveLoading?: boolean;
+  showUnsavedHint?: boolean;
 }
 
 export default function Header({
@@ -43,6 +44,7 @@ export default function Header({
   shareDisabled = false,
   shareLoading = false,
   saveLoading = false,
+  showUnsavedHint = false,
 }: HeaderProps) {
   const router = useRouter();
   const { user, loading: authLoading, logout } = useAuth();
@@ -51,8 +53,13 @@ export default function Header({
   const [creditsLoading, setCreditsLoading] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  const hasSecondaryActions =
+    (showEmailButton && !!onEmailClick) || showDownloadButton;
 
   useEffect(() => {
     const fetchCredits = async () => {
@@ -87,7 +94,6 @@ export default function Header({
     }
   }, [user, authLoading]);
 
-  // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -102,25 +108,101 @@ export default function Header({
       ) {
         setShowDownloadMenu(false);
       }
+      if (
+        moreMenuRef.current &&
+        !moreMenuRef.current.contains(event.target as Node)
+      ) {
+        setShowMoreMenu(false);
+      }
     };
 
-    if (showUserMenu || showDownloadMenu) {
+    if (showUserMenu || showDownloadMenu || showMoreMenu) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showUserMenu, showDownloadMenu]);
+  }, [showUserMenu, showDownloadMenu, showMoreMenu]);
+
+  const downloadMenuItems = (
+    <>
+      {onDownloadOneFile && (
+        <button
+          onClick={() => {
+            setShowDownloadMenu(false);
+            setShowMoreMenu(false);
+            onDownloadOneFile();
+          }}
+          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2"
+        >
+          <span>📄</span>
+          <span className="flex-1">Download as one file</span>
+        </button>
+      )}
+      {onDownloadMultipleFiles && (
+        <button
+          onClick={() => {
+            setShowDownloadMenu(false);
+            setShowMoreMenu(false);
+            onDownloadMultipleFiles();
+          }}
+          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2"
+        >
+          <span>📁</span>
+          <span className="flex-1">Download as multiple files</span>
+        </button>
+      )}
+      {onDownloadPreviewAsPDF && (
+        <button
+          onClick={() => {
+            setShowDownloadMenu(false);
+            setShowMoreMenu(false);
+            onDownloadPreviewAsPDF();
+          }}
+          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2"
+        >
+          <span>📄</span>
+          <span className="flex-1">Download preview as PDF</span>
+        </button>
+      )}
+      {onDownloadPreviewAsImage && (
+        <button
+          onClick={() => {
+            setShowDownloadMenu(false);
+            setShowMoreMenu(false);
+            onDownloadPreviewAsImage();
+          }}
+          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2"
+        >
+          <span>🖼️</span>
+          <span className="flex-1">Download preview as image</span>
+        </button>
+      )}
+      {onDownloadClick && !onDownloadOneFile && (
+        <button
+          onClick={() => {
+            setShowDownloadMenu(false);
+            setShowMoreMenu(false);
+            onDownloadClick();
+          }}
+          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2"
+        >
+          <span>📥</span>
+          <span>Download</span>
+        </button>
+      )}
+    </>
+  );
 
   return (
     <header
       role="banner"
-      className="bg-gray-800 dark:bg-[#181818] dark:border-b dark:border-[#2b2b2b] text-white p-2 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 shadow-md dark:shadow-none z-10"
+      className="bg-gray-800 dark:bg-[#181818] dark:border-b dark:border-[#2b2b2b] text-white px-2 py-2 sm:p-4 flex items-center justify-between gap-2 shadow-md dark:shadow-none z-10 flex-shrink-0"
     >
       <Link
         href="/"
-        className="flex items-center gap-2 sm:gap-3 cursor-pointer"
+        className="flex items-center gap-2 sm:gap-3 cursor-pointer flex-shrink-0"
         aria-label="Code Player Home"
       >
         <Image
@@ -128,15 +210,20 @@ export default function Header({
           alt="Code Player - Online HTML, CSS & JavaScript Editor"
           width={120}
           height={120}
-          className="w-20 sm:w-auto h-auto"
+          className="w-16 sm:w-20 md:w-auto h-auto"
           priority
         />
       </Link>
-      <div className="flex gap-1 sm:gap-2 items-center flex-wrap justify-center sm:justify-end w-full sm:w-auto">
+      <div className="flex gap-1.5 sm:gap-2 items-center justify-end min-w-0 flex-1">
+        {showUnsavedHint && (
+          <span className="hidden sm:inline text-xs text-amber-300 max-w-[200px] text-right leading-tight">
+            Code not saved yet — save or you may lose it
+          </span>
+        )}
         <button
           type="button"
           onClick={toggleTheme}
-          className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-700 dark:bg-[#2b2b2b] text-white dark:text-[#d4d4d4] rounded hover:bg-gray-600 dark:hover:bg-[#333333] text-xs sm:text-sm font-medium border border-transparent dark:border-[#3a3a3a]"
+          className="min-w-[36px] min-h-[36px] px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-700 dark:bg-[#2b2b2b] text-white dark:text-[#d4d4d4] rounded hover:bg-gray-600 dark:hover:bg-[#333333] text-xs sm:text-sm font-medium border border-transparent dark:border-[#3a3a3a] flex items-center justify-center"
           title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         >
@@ -144,21 +231,19 @@ export default function Header({
         </button>
         {!authLoading && user ? (
           <>
+            {/* Desktop: Email */}
             {showEmailButton && (
               <button
                 onClick={onEmailClick}
-                className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-xs sm:text-sm font-medium"
+                className="hidden md:inline-flex px-3 lg:px-4 py-1.5 sm:py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-xs sm:text-sm font-medium"
               >
-                <span className="hidden sm:inline">
-                  📧 Creating this for email
-                </span>
-                <span className="sm:hidden">📧 Email</span>
+                📧 Creating this for email
               </button>
             )}
             {showSaveButton && (
               <button
                 onClick={onSaveClick}
-                className="px-2 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
+                className="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
                 disabled={shareDisabled || saveLoading}
               >
                 {saveLoading ? "Saving..." : "Save"}
@@ -167,17 +252,18 @@ export default function Header({
             {showShareButton && (
               <button
                 onClick={onShareClick}
-                className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
+                className="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
                 disabled={shareDisabled || shareLoading}
               >
                 Share
               </button>
             )}
+            {/* Desktop: Download */}
             {showDownloadButton && (
-              <div className="relative" ref={downloadMenuRef}>
+              <div className="relative hidden md:block" ref={downloadMenuRef}>
                 <button
                   onClick={() => setShowDownloadMenu(!showDownloadMenu)}
-                  className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm font-medium flex items-center gap-2"
+                  className="px-3 lg:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm font-medium flex items-center gap-2"
                 >
                   <span>Download</span>
                   <span className="h-3 w-px bg-white/50"></span>
@@ -186,93 +272,69 @@ export default function Header({
                   </span>
                 </button>
                 {showDownloadMenu && (
-                  <div className="absolute right-0 mt-2 min-w-[220px] bg-white dark:bg-[#1f1f1f] rounded-lg shadow-lg border border-gray-200 dark:border-[#2b2b2b] py-2 z-50">
-                    {onDownloadOneFile && (
+                  <div className="absolute right-0 mt-2 min-w-[220px] max-w-[calc(100vw-1rem)] bg-white dark:bg-[#1f1f1f] rounded-lg shadow-lg border border-gray-200 dark:border-[#2b2b2b] py-2 z-50">
+                    {downloadMenuItems}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Mobile: More menu for Email + Download */}
+            {hasSecondaryActions && (
+              <div className="relative md:hidden" ref={moreMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowMoreMenu(!showMoreMenu)}
+                  className="min-w-[36px] min-h-[36px] px-2.5 py-1.5 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm font-medium"
+                  aria-label="More actions"
+                  aria-expanded={showMoreMenu}
+                >
+                  ⋯
+                </button>
+                {showMoreMenu && (
+                  <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-1rem)] bg-white dark:bg-[#1f1f1f] rounded-lg shadow-lg border border-gray-200 dark:border-[#2b2b2b] py-2 z-50">
+                    {showEmailButton && onEmailClick && (
                       <button
                         onClick={() => {
-                          setShowDownloadMenu(false);
-                          onDownloadOneFile();
+                          setShowMoreMenu(false);
+                          onEmailClick();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2 whitespace-nowrap"
+                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b]"
                       >
-                        <span>📄</span>
-                        <span className="flex-1">Download as one file</span>
+                        📧 Send as email
                       </button>
                     )}
-                    {onDownloadMultipleFiles && (
-                      <button
-                        onClick={() => {
-                          setShowDownloadMenu(false);
-                          onDownloadMultipleFiles();
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <span>📁</span>
-                        <span className="flex-1">
-                          Download as multiple files
-                        </span>
-                      </button>
-                    )}
-                    {onDownloadPreviewAsPDF && (
-                      <button
-                        onClick={() => {
-                          setShowDownloadMenu(false);
-                          onDownloadPreviewAsPDF();
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <span>📄</span>
-                        <span className="flex-1">Download preview as PDF</span>
-                      </button>
-                    )}
-                    {onDownloadPreviewAsImage && (
-                      <button
-                        onClick={() => {
-                          setShowDownloadMenu(false);
-                          onDownloadPreviewAsImage();
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b] flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <span>🖼️</span>
-                        <span className="flex-1">
-                          Download preview as image
-                        </span>
-                      </button>
-                    )}
-                    {onDownloadClick && !onDownloadOneFile && (
-                      <button
-                        onClick={() => {
-                          setShowDownloadMenu(false);
-                          onDownloadClick();
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                      >
-                        <span>📥</span>
-                        <span>Download</span>
-                      </button>
+                    {showDownloadButton && (
+                      <>
+                        {showEmailButton && onEmailClick && (
+                          <div className="border-t border-gray-200 dark:border-[#2b2b2b] my-1" />
+                        )}
+                        <p className="px-4 py-1 text-[11px] uppercase tracking-wide text-gray-400 dark:text-[#8a8a8a]">
+                          Download
+                        </p>
+                        {downloadMenuItems}
+                      </>
                     )}
                   </div>
                 )}
               </div>
             )}
-            {/* User Profile Dropdown */}
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center text-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center text-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors"
                 title={user.email}
               >
                 {user.email.charAt(0).toUpperCase()}
               </button>
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#1f1f1f] rounded-lg shadow-lg border border-gray-200 dark:border-[#2b2b2b] py-2 z-50">
+                <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-1rem)] bg-white dark:bg-[#1f1f1f] rounded-lg shadow-lg border border-gray-200 dark:border-[#2b2b2b] py-2 z-50">
                   <div className="px-4 py-2 border-b border-gray-200 dark:border-[#2b2b2b]">
-                    <p className="text-sm font-semibold text-gray-800 dark:text-[#d4d4d4]">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-[#d4d4d4] break-all">
                       {user.email}
                     </p>
                   </div>
                   <div className="px-4 py-2 border-b border-gray-200 dark:border-[#2b2b2b]">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <span className="text-sm text-gray-700 dark:text-[#8a8a8a]">
                         Total Tokens:
                       </span>
@@ -304,7 +366,7 @@ export default function Header({
                       setShowUserMenu(false);
                       router.push("/account");
                     }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b]"
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-[#d4d4d4] hover:bg-gray-100 dark:hover:bg-[#2b2b2b]"
                   >
                     Account
                   </button>
@@ -313,7 +375,7 @@ export default function Header({
                       setShowUserMenu(false);
                       logout();
                     }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-[#2b2b2b]"
+                    className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-[#2b2b2b]"
                   >
                     Logout
                   </button>
@@ -324,7 +386,7 @@ export default function Header({
         ) : !authLoading ? (
           <button
             onClick={onLoginClick || (() => router.push("/"))}
-            className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm font-medium"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm font-medium"
           >
             Login
           </button>

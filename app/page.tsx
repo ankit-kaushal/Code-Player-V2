@@ -127,18 +127,15 @@ export default function Home() {
     checkPermissions();
   }, [shareId, user, checkCanEdit]);
 
-  // Warn user before leaving if there's unsaved content
+  // Warn only for unsaved work on a new (not yet saved) playground
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Check if there's any content in the editors
+      if (shareId) return;
       const hasContent = html.trim() || css.trim() || js.trim();
-      
-      if (hasContent) {
-        // Modern browsers ignore custom messages, but we still need to set returnValue
-        e.preventDefault();
-        e.returnValue = "";
-        return "";
-      }
+      if (!hasContent) return;
+      e.preventDefault();
+      e.returnValue = "";
+      return "";
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -146,7 +143,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [html, css, js]);
+  }, [html, css, js, shareId]);
 
   // Resizing is now handled by re-resizable library
 
@@ -567,11 +564,12 @@ ${bodyContent}
         onDownloadPreviewAsImage={handleDownloadPreviewAsImage}
         shareDisabled={!canEdit}
         saveLoading={saving}
+        showUnsavedHint={!shareId}
         onLoginClick={() => setIsLoginModalOpen(true)}
       />
 
       {!shareId && (
-        <div className="bg-amber-100 dark:bg-[#3a2e14] text-amber-900 dark:text-[#e6d5a0] px-4 py-1.5 text-center text-xs sm:text-sm">
+        <div className="bg-amber-400 dark:bg-[#c9a227] text-amber-950 dark:text-[#1a1408] px-4 py-2 text-center text-xs sm:text-sm font-medium z-10">
           Your code is not saved yet. Save it or you may lose your work.
         </div>
       )}
@@ -624,9 +622,8 @@ ${bodyContent}
 
         {/* Mobile Layout - Stacked Vertically */}
         <div className="md:hidden flex-1 flex flex-col gap-2 p-2 min-h-0 overflow-hidden">
-          {/* Collapsed Editors Buttons - Mobile */}
           {(htmlCollapsed || cssCollapsed || jsCollapsed) && (
-            <div className="flex gap-2 flex-wrap mb-2">
+            <div className="flex gap-2 flex-wrap flex-shrink-0">
               {htmlCollapsed && (
                 <button
                   onClick={() => setHtmlCollapsed(false)}
@@ -654,51 +651,47 @@ ${bodyContent}
             </div>
           )}
 
-          {/* HTML Editor - Mobile */}
-          {!htmlCollapsed && (
-            <div className="w-full flex-shrink-0" style={{ height: "200px" }}>
-              <CodeEditor
-                language="html"
-                value={html}
-                onChange={setHtml}
-                readOnly={!canEdit}
-                isCollapsed={htmlCollapsed}
-                onToggleCollapse={() => setHtmlCollapsed(true)}
-              />
-            </div>
-          )}
+          <div className="flex flex-col gap-2 overflow-y-auto flex-shrink-0 max-h-[42vh]">
+            {!htmlCollapsed && (
+              <div className="w-full flex-shrink-0 h-36">
+                <CodeEditor
+                  language="html"
+                  value={html}
+                  onChange={setHtml}
+                  readOnly={!canEdit}
+                  isCollapsed={htmlCollapsed}
+                  onToggleCollapse={() => setHtmlCollapsed(true)}
+                />
+              </div>
+            )}
+            {!cssCollapsed && (
+              <div className="w-full flex-shrink-0 h-36">
+                <CodeEditor
+                  language="css"
+                  value={css}
+                  onChange={setCss}
+                  readOnly={!canEdit}
+                  isCollapsed={cssCollapsed}
+                  onToggleCollapse={() => setCssCollapsed(true)}
+                />
+              </div>
+            )}
+            {!jsCollapsed && (
+              <div className="w-full flex-shrink-0 h-36">
+                <CodeEditor
+                  language="javascript"
+                  value={js}
+                  onChange={setJs}
+                  readOnly={!canEdit}
+                  isCollapsed={jsCollapsed}
+                  onToggleCollapse={() => setJsCollapsed(true)}
+                />
+              </div>
+            )}
+          </div>
 
-          {/* CSS Editor - Mobile */}
-          {!cssCollapsed && (
-            <div className="w-full flex-shrink-0" style={{ height: "200px" }}>
-              <CodeEditor
-                language="css"
-                value={css}
-                onChange={setCss}
-                readOnly={!canEdit}
-                isCollapsed={cssCollapsed}
-                onToggleCollapse={() => setCssCollapsed(true)}
-              />
-            </div>
-          )}
-
-          {/* JS Editor - Mobile */}
-          {!jsCollapsed && (
-            <div className="w-full flex-shrink-0" style={{ height: "200px" }}>
-              <CodeEditor
-                language="javascript"
-                value={js}
-                onChange={setJs}
-                readOnly={!canEdit}
-                isCollapsed={jsCollapsed}
-                onToggleCollapse={() => setJsCollapsed(true)}
-              />
-            </div>
-          )}
-
-          {/* Preview/Console Panel - Mobile */}
           <PreviewConsolePanel
-            className="w-full flex-1"
+            className="w-full flex-1 min-h-[160px]"
             style={{ height: 0 }}
             layoutMode={layoutMode}
             onLayoutModeChange={setLayoutMode}

@@ -66,17 +66,19 @@ export default function PreviewConsolePanel({
     }`;
 
   const startSplitDrag = useCallback(
-    (event: React.MouseEvent) => {
+    (event: React.PointerEvent) => {
       event.preventDefault();
       event.stopPropagation();
       const panel = panelBodyRef.current;
       if (!panel) return;
 
+      const target = event.currentTarget;
+      target.setPointerCapture(event.pointerId);
       setIsDraggingSplit(true);
       document.body.style.cursor = "row-resize";
       document.body.style.userSelect = "none";
 
-      const onMove = (e: MouseEvent) => {
+      const onMove = (e: PointerEvent) => {
         const rect = panel.getBoundingClientRect();
         if (rect.height <= 0) return;
         const next = ((e.clientY - rect.top) / rect.height) * 100;
@@ -86,16 +88,23 @@ export default function PreviewConsolePanel({
         onSplitPreviewPercentChange(clamped);
       };
 
-      const onUp = () => {
+      const onUp = (e: PointerEvent) => {
         setIsDraggingSplit(false);
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
+        try {
+          target.releasePointerCapture(e.pointerId);
+        } catch {
+          /* already released */
+        }
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("pointercancel", onUp);
       };
 
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onUp);
     },
     [onSplitPreviewPercentChange]
   );
@@ -105,7 +114,7 @@ export default function PreviewConsolePanel({
       className={`border border-gray-300 dark:border-[#2b2b2b] rounded flex flex-col min-h-0 overflow-hidden dark:bg-[#181818] ${className}`}
       style={style}
     >
-      <div className="flex items-center border-b border-gray-300 dark:border-[#2b2b2b] bg-gray-100 dark:bg-[#2b2b2b] flex-shrink-0">
+      <div className="flex items-center border-b border-gray-300 dark:border-[#2b2b2b] bg-gray-100 dark:bg-[#2b2b2b] flex-shrink-0 overflow-x-auto">
         <button
           type="button"
           onClick={() => onLayoutModeChange("preview")}
@@ -130,7 +139,7 @@ export default function PreviewConsolePanel({
         </button>
         {onAutoRunChange && (
           <label
-            className="ml-auto mr-2 sm:mr-3 flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-600 dark:text-[#8a8a8a] cursor-pointer select-none whitespace-nowrap"
+            className="ml-auto mr-2 sm:mr-3 flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-600 dark:text-[#8a8a8a] cursor-pointer select-none whitespace-nowrap flex-shrink-0"
             title="Automatically capture console output as you type"
           >
             <input
@@ -139,7 +148,7 @@ export default function PreviewConsolePanel({
               onChange={(e) => onAutoRunChange(e.target.checked)}
               className="rounded border-gray-300 dark:border-[#3a3a3a] dark:bg-[#1f1f1f]"
             />
-            Auto run console
+            Auto
           </label>
         )}
       </div>
@@ -173,8 +182,8 @@ export default function PreviewConsolePanel({
               role="separator"
               aria-orientation="horizontal"
               aria-label="Resize preview and console"
-              onMouseDown={startSplitDrag}
-              className={`h-2 flex-shrink-0 cursor-row-resize bg-gray-300 dark:bg-[#3a3a3a] hover:bg-blue-500 dark:hover:bg-[#aed8aa] transition-colors z-20 ${
+              onPointerDown={startSplitDrag}
+              className={`h-3 sm:h-2 flex-shrink-0 cursor-row-resize touch-none bg-gray-300 dark:bg-[#3a3a3a] hover:bg-blue-500 dark:hover:bg-[#aed8aa] transition-colors z-20 ${
                 isDraggingSplit ? "bg-blue-500 dark:bg-[#aed8aa]" : ""
               }`}
             />

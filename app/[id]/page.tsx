@@ -29,6 +29,9 @@ export default function SharedCodePage() {
   const [html, setHtml] = useState("");
   const [css, setCss] = useState("");
   const [js, setJs] = useState("");
+  const [lastSavedHtml, setLastSavedHtml] = useState("");
+  const [lastSavedCss, setLastSavedCss] = useState("");
+  const [lastSavedJs, setLastSavedJs] = useState("");
   const [canEdit, setCanEdit] = useState(true);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
@@ -62,6 +65,18 @@ export default function SharedCodePage() {
     skipEqualResetRef,
   } = useLayoutPrefs();
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const sync = () => setIsDesktop(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  const isDirty =
+    html !== lastSavedHtml || css !== lastSavedCss || js !== lastSavedJs;
 
   const checkCanEdit = useCallback(async () => {
     if (!user || !shareId) return;
@@ -102,18 +117,15 @@ export default function SharedCodePage() {
     checkPermissions();
   }, [shareId, user, checkCanEdit]);
 
-  // Warn user before leaving if there's unsaved content
+  // Warn only when there are unsaved edits vs last saved/loaded version
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Check if there's any content in the editors
-      const hasContent = html.trim() || css.trim() || js.trim();
-      
-      if (hasContent) {
-        // Modern browsers ignore custom messages, but we still need to set returnValue
-        e.preventDefault();
-        e.returnValue = "";
-        return "";
-      }
+      const isDirty =
+        html !== lastSavedHtml || css !== lastSavedCss || js !== lastSavedJs;
+      if (!isDirty) return;
+      e.preventDefault();
+      e.returnValue = "";
+      return "";
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -121,7 +133,7 @@ export default function SharedCodePage() {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [html, css, js]);
+  }, [html, css, js, lastSavedHtml, lastSavedCss, lastSavedJs]);
 
   // Reset widths to equal when editors are collapsed/expanded (not on hydrate)
   useEffect(() => {
@@ -151,9 +163,15 @@ export default function SharedCodePage() {
         throw new Error("Failed to load code");
       }
       const code = await response.json();
-      setHtml(code.html || "");
-      setCss(code.css || "");
-      setJs(code.js || "");
+      const nextHtml = code.html || "";
+      const nextCss = code.css || "";
+      const nextJs = code.js || "";
+      setHtml(nextHtml);
+      setCss(nextCss);
+      setJs(nextJs);
+      setLastSavedHtml(nextHtml);
+      setLastSavedCss(nextCss);
+      setLastSavedJs(nextJs);
 
       if (user) {
         checkCanEdit();
@@ -198,6 +216,9 @@ export default function SharedCodePage() {
         throw new Error(data.error || "Failed to save");
       }
 
+      setLastSavedHtml(html);
+      setLastSavedCss(css);
+      setLastSavedJs(js);
       setMessage("Code saved successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (error: any) {
@@ -541,7 +562,14 @@ ${bodyContent}
         onLoginClick={() => setIsLoginModalOpen(true)}
         shareDisabled={!canEdit}
         saveLoading={saving}
+        showUnsavedHint={isDirty && canEdit}
       />
+
+      {isDirty && canEdit && (
+        <div className="bg-amber-400 dark:bg-[#c9a227] text-amber-950 dark:text-[#1a1408] px-4 py-2 text-center text-xs sm:text-sm font-medium z-10">
+          You have unsaved changes. Save or you may lose your work.
+        </div>
+      )}
 
       {message && (
         <div className="bg-green-500 text-white px-4 py-2 text-center text-sm">
@@ -556,7 +584,7 @@ ${bodyContent}
       )}
 
       <div className="flex-1 flex relative min-h-0">
-        {/* Collapsed Editors Sidebar */}
+        {/* Collapsed Editors Sidebar - Desktop */}
         {(htmlCollapsed || cssCollapsed || jsCollapsed) && (
           <div className="hidden md:flex w-16 bg-gray-200 dark:bg-[#1f1f1f] border-r border-gray-300 dark:border-[#2b2b2b] flex-col items-center py-3 gap-2 flex-shrink-0">
             {htmlCollapsed && (
@@ -589,12 +617,103 @@ ${bodyContent}
           </div>
         )}
 
+        {/* Mobile Layout - Stacked Vertically */}
+        <div className="md:hidden flex-1 flex flex-col gap-2 p-2 min-h-0 overflow-hidden">
+          {(htmlCollapsed || cssCollapsed || jsCollapsed) && (
+            <div className="flex gap-2 flex-wrap flex-shrink-0">
+              {htmlCollapsed && (
+                <button
+                  onClick={() => setHtmlCollapsed(false)}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow"
+                >
+                  Reopen HTML
+                </button>
+              )}
+              {cssCollapsed && (
+                <button
+                  onClick={() => setCssCollapsed(false)}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow"
+                >
+                  Reopen CSS
+                </button>
+              )}
+              {jsCollapsed && (
+                <button
+                  onClick={() => setJsCollapsed(false)}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 shadow"
+                >
+                  Reopen JS
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2 overflow-y-auto flex-shrink-0 max-h-[42vh]">
+            {!htmlCollapsed && (
+              <div className="w-full flex-shrink-0 h-36">
+                <CodeEditor
+                  language="html"
+                  value={html}
+                  onChange={setHtml}
+                  readOnly={!canEdit}
+                  isCollapsed={htmlCollapsed}
+                  onToggleCollapse={() => setHtmlCollapsed(true)}
+                />
+              </div>
+            )}
+            {!cssCollapsed && (
+              <div className="w-full flex-shrink-0 h-36">
+                <CodeEditor
+                  language="css"
+                  value={css}
+                  onChange={setCss}
+                  readOnly={!canEdit}
+                  isCollapsed={cssCollapsed}
+                  onToggleCollapse={() => setCssCollapsed(true)}
+                />
+              </div>
+            )}
+            {!jsCollapsed && (
+              <div className="w-full flex-shrink-0 h-36">
+                <CodeEditor
+                  language="javascript"
+                  value={js}
+                  onChange={setJs}
+                  readOnly={!canEdit}
+                  isCollapsed={jsCollapsed}
+                  onToggleCollapse={() => setJsCollapsed(true)}
+                />
+              </div>
+            )}
+          </div>
+
+          <PreviewConsolePanel
+            className="w-full flex-1 min-h-[160px]"
+            style={{ height: 0 }}
+            layoutMode={layoutMode}
+            onLayoutModeChange={setLayoutMode}
+            splitPreviewPercent={splitPreviewPercent}
+            onSplitPreviewPercentChange={setSplitPreviewPercent}
+            html={html}
+            css={css}
+            js={js}
+            consoleLogs={consoleLogs}
+            shouldRunCode={shouldRunCode}
+            previewRef={isDesktop ? undefined : previewRef}
+            onConsoleLog={handleConsoleLog}
+            onRun={handleRunCode}
+            onClear={handleClearConsole}
+            autoRun={autoRun}
+            onAutoRunChange={setAutoRun}
+          />
+        </div>
+
+        {/* Desktop Layout - Horizontal with Resizable */}
         <div
           ref={containerRef}
-          className="flex-1 flex gap-2 p-2 min-h-0"
+          className="hidden md:flex flex-1 flex-row gap-2 p-2 min-h-0"
           style={{ position: "relative", minWidth: 0, overflow: "hidden" }}
         >
-          {/* HTML Editor */}
           {!htmlCollapsed && (
             <Resizable
               size={{ width: `${calcHtmlWidth}%`, height: "100%" }}
@@ -616,7 +735,6 @@ ${bodyContent}
                   );
                   setHtmlWidth(newHtmlWidth);
 
-                  // Adjust next visible editor
                   if (!cssCollapsed) {
                     const delta = newHtmlWidth - calcHtmlWidth;
                     setCssWidth(Math.max(10, calcCssWidth - delta));
@@ -645,7 +763,6 @@ ${bodyContent}
             </Resizable>
           )}
 
-          {/* CSS Editor */}
           {!cssCollapsed && (
             <Resizable
               size={{ width: `${calcCssWidth}%`, height: "100%" }}
@@ -667,7 +784,6 @@ ${bodyContent}
                   );
                   setCssWidth(newCssWidth);
 
-                  // Adjust next visible editor
                   if (!jsCollapsed) {
                     const delta = newCssWidth - calcCssWidth;
                     setJsWidth(Math.max(10, calcJsWidth - delta));
@@ -693,7 +809,6 @@ ${bodyContent}
             </Resizable>
           )}
 
-          {/* JS Editor */}
           {!jsCollapsed && (
             <Resizable
               size={{ width: `${calcJsWidth}%`, height: "100%" }}
@@ -740,23 +855,9 @@ ${bodyContent}
               </div>
             </Resizable>
           )}
-          {/* JS Editor - Mobile */}
-          {!jsCollapsed && (
-            <div className="md:hidden w-full h-48 border border-gray-300 rounded">
-              <CodeEditor
-                language="javascript"
-                value={js}
-                onChange={setJs}
-                readOnly={!canEdit}
-                isCollapsed={jsCollapsed}
-                onToggleCollapse={() => setJsCollapsed(true)}
-              />
-            </div>
-          )}
 
-          {/* Preview/Console Panel — flex-1 fills leftover space after editor % widths */}
           <PreviewConsolePanel
-            className="min-h-0 h-full flex-1 min-w-[180px]"
+            className="h-full flex-1 min-w-[180px]"
             layoutMode={layoutMode}
             onLayoutModeChange={setLayoutMode}
             splitPreviewPercent={splitPreviewPercent}
@@ -766,7 +867,7 @@ ${bodyContent}
             js={js}
             consoleLogs={consoleLogs}
             shouldRunCode={shouldRunCode}
-            previewRef={previewRef}
+            previewRef={isDesktop ? previewRef : undefined}
             onConsoleLog={handleConsoleLog}
             onRun={handleRunCode}
             onClear={handleClearConsole}
