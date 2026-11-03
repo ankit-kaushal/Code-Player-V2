@@ -35,7 +35,7 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
       shouldRun = false,
       captureConsole = false,
       compact = false,
-      autoRun = true,
+      autoRun = false,
     },
     ref
   ) => {
@@ -44,6 +44,11 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
     const captureConsoleRef = useRef<boolean>(false);
     const isManualExecutingRef = useRef<boolean>(false);
     const executionIdRef = useRef<number>(0);
+    const autoRunRef = useRef<boolean>(autoRun);
+
+    useEffect(() => {
+      autoRunRef.current = autoRun;
+    }, [autoRun]);
 
     const runCode = useCallback(
       (captureLogs: boolean = false) => {
@@ -245,8 +250,12 @@ const Preview = forwardRef<PreviewHandle, PreviewProps>(
           if (onConsoleLog) {
             onConsoleLog([]);
           }
-          // Increment execution ID to ignore any pending messages
+          // Invalidate pending messages from the previous run
           executionIdRef.current += 1;
+          // Re-run with a matching execution id so console auto-capture keeps working
+          if (autoRunRef.current) {
+            runCode(true);
+          }
         },
         getIframe: () => {
           return iframeRef.current;

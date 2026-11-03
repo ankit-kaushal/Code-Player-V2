@@ -10,6 +10,7 @@ import PreviewConsolePanel from "../components/PreviewConsolePanel";
 import LoginModal from "../components/LoginModal";
 import EmailModal from "../components/EmailModal";
 import Header from "../components/Header";
+import ShareLinkModal from "../components/ShareLinkModal";
 import { useLayoutPrefs } from "../hooks/useLayoutPrefs";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -31,6 +32,7 @@ export default function SharedCodePage() {
   const [canEdit, setCanEdit] = useState(true);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([]);
@@ -206,68 +208,12 @@ export default function SharedCodePage() {
     }
   };
 
-  const handleShare = async () => {
+  const handleShare = () => {
     if (!user) {
       setIsLoginModalOpen(true);
       return;
     }
-
-    setSaving(true);
-    setMessage("");
-
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No token found");
-      }
-
-      // Save the code first
-      const response = await fetch("/api/code/save", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ html, css, js, shareId }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to save");
-      }
-
-      const newShareId = data.shareId;
-
-      // Replace URL with /[id] format
-      const newUrl = `/${newShareId}`;
-      router.push(newUrl);
-      window.history.replaceState({}, "", newUrl);
-
-      const shareUrl = `${window.location.origin}${newUrl}`;
-      navigator.clipboard
-        .writeText(shareUrl)
-        .then(() => {
-          setMessage("Code saved and share link copied to clipboard!");
-          setTimeout(() => setMessage(""), 3000);
-        })
-        .catch(() => {
-          // Fallback for older browsers
-          const textArea = document.createElement("textarea");
-          textArea.value = shareUrl;
-          document.body.appendChild(textArea);
-          textArea.select();
-          document.execCommand("copy");
-          document.body.removeChild(textArea);
-          setMessage("Code saved and share link copied to clipboard!");
-          setTimeout(() => setMessage(""), 3000);
-        });
-    } catch (error: any) {
-      setMessage("Failed to save and share code");
-      setTimeout(() => setMessage(""), 3000);
-    } finally {
-      setSaving(false);
-    }
+    setIsShareModalOpen(true);
   };
 
   const handleDownloadOneFile = () => {
@@ -582,10 +528,11 @@ ${bodyContent}
       <h1 className="sr-only">Shared Code - {shareId} | Code Player</h1>
       <Header
         showEmailButton={true}
-        showShareButton={false}
+        showShareButton={true}
         showSaveButton={true}
         showDownloadButton={true}
         onEmailClick={handleEmailClick}
+        onShareClick={handleShare}
         onSaveClick={handleSave}
         onDownloadOneFile={handleDownloadOneFile}
         onDownloadMultipleFiles={handleDownloadMultipleFiles}
@@ -841,6 +788,16 @@ ${bodyContent}
         html={html}
         css={css}
         js={js}
+      />
+
+      <ShareLinkModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        shareUrl={
+          typeof window !== "undefined"
+            ? `${window.location.origin}/${shareId}`
+            : `/${shareId}`
+        }
       />
     </main>
   );

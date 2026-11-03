@@ -155,19 +155,6 @@ export default function Header({
                 <span className="sm:hidden">📧 Email</span>
               </button>
             )}
-            {showShareButton && !showSaveButton && (
-              <button
-                onClick={onShareClick}
-                className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
-                disabled={shareDisabled || shareLoading}
-              >
-                {shareLoading ? (
-                  <span className="hidden sm:inline">Saving & Sharing...</span>
-                ) : (
-                  "Share"
-                )}
-              </button>
-            )}
             {showSaveButton && (
               <button
                 onClick={onSaveClick}
@@ -175,6 +162,15 @@ export default function Header({
                 disabled={shareDisabled || saveLoading}
               >
                 {saveLoading ? "Saving..." : "Save"}
+              </button>
+            )}
+            {showShareButton && (
+              <button
+                onClick={onShareClick}
+                className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
+                disabled={shareDisabled || shareLoading}
+              >
+                Share
               </button>
             )}
             {showDownloadButton && (
